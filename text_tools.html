@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>文本处理工具 - Web工具集</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            position: relative;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            font-weight: 300;
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .back-btn {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            text-decoration: none;
+            font-size: 0.9em;
+            transition: background 0.3s ease;
+        }
+
+        .back-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        .tools-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 30px;
+        }
+
+        .tool-section {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 25px;
+            border: 2px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .tool-section:hover {
+            border-color: #667eea;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .tool-title {
+            font-size: 1.4em;
+            color: #333;
+            margin-bottom: 15px;
+            font-weight: 500;
+        }
+
+        .tool-description {
+            color: #666;
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .input-label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 500;
+        }
+
+        .text-input {
+            width: 100%;
+            min-height: 120px;
+            padding: 15px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            resize: vertical;
+            transition: border-color 0.3s ease;
+        }
+
+        .text-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .text-output {
+            background: #f0f4f8;
+            border: 2px solid #e2e8f0;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 15px;
+        }
+
+        .action-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: transform 0.3s ease;
+        }
+
+        .action-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .action-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .secondary-btn {
+            background: #6c757d;
+        }
+
+        .secondary-btn:hover {
+            background: #5a6268;
+        }
+
+        .encoding-select {
+            padding: 8px 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            margin: 0 10px;
+            font-size: 0.9em;
+        }
+
+        .case-options {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 15px;
+        }
+
+        .case-btn {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.85em;
+            transition: background 0.3s ease;
+        }
+
+        .case-btn:hover {
+            background: #218838;
+        }
+
+        .stats {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            border-left: 4px solid #2196f3;
+        }
+
+        .stats-title {
+            font-weight: 500;
+            color: #1565c0;
+            margin-bottom: 8px;
+        }
+
+        .stats-content {
+            color: #1976d2;
+            font-size: 0.9em;
+        }
+
+        .footer {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+            font-size: 0.9em;
+            border-top: 1px solid #eee;
+        }
+
+        @media (max-width: 768px) {
+            .content {
+                padding: 20px;
+            }
+            
+            .tools-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            
+            .button-group, .case-options {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <a href="index.html" class="back-btn">← 返回主页</a>
+            <h1>📝 文本处理工具</h1>
+            <p>提供文本格式化、编码转换、去重等实用功能</p>
+        </div>
+
+        <div class="content">
+            <div class="tools-grid">
+                <!-- 文本格式化工具 -->
+                <div class="tool-section">
+                    <h3 class="tool-title">文本格式化</h3>
+                    <p class="tool-description">格式化和美化各种文本格式，提高可读性</p>
+                    
+                    <div class="input-group">
+                        <label class="input-label">输入文本：</label>
+                        <textarea id="formatInput" class="text-input" placeholder="请输入需要格式化的文本或JSON..."></textarea>
+                    </div>
+
+                    <div class="button-group">
+                        <button class="action-btn" onclick="formatJSON()">格式化JSON</button>
+                        <button class="action-btn" onclick="compressJSON()">压缩JSON</button>
+                        <button class="action-btn" onclick="formatXML()">格式化XML</button>
+                        <button class="action-btn" onclick="formatCSS()">格式化CSS</button>
+                    </div>
+
+                    <div class="input-group">
+                        <label class="input-label">输出结果：</label>
+                        <textarea id="formatOutput" class="text-input text-output" readonly></textarea>
+                    </div>
+
+                    <div class="button-group">
+                        <button class="secondary-btn action-btn" onclick="copyText('formatOutput')">复制结果</button>
+                        <button class="secondary-btn action-btn" onclick="clearText('formatInput', 'formatOutput')">清空</button>
+                    </div>
+                </div>
+
+                <!-- 编码转换工具 -->
+                <div class="tool-section">
+                    <h3 class="tool-title">编码转换</h3>
+                    <p class="tool-description">支持多种编码格式之间的相互转换</p>
+                    
+                    <div class="input-group">
+                        <label class="input-label">输入文本：</label>
+                        <textarea id="encodeInput" class="text-input" placeholder="请输入需要编码/解码的文本..."></textarea>
+                    </div>
+
+                    <div class="button-group">
+                        <button class="action-btn" onclick="encodeBase64()">Base64编码</button>
+                        <button class="action-btn" onclick="decodeBase64()">Base64解码</button>
+                        <button class="action-btn" onclick="encodeURL()">URL编码</button>
+                        <button class="action-btn" onclick="decodeURL()">URL解码</button>
+                        <button class="action-btn" onclick="encodeHTML()">HTML编码</button>
+                        <button class="action-btn" onclick="decodeHTML()">HTML解码</button>
+                    </div>
+
+                    <div class="input-group">
+                        <label class="input-label">输出结果：</label>
+                        <textarea id="encodeOutput" class="text-input text-output" readonly></textarea>
+                    </div>
+
+                    <div class="button-group">
+                        <button class="secondary-btn action-btn" onclick="copyText('encodeOutput')">复制结果</button>
+                        <button class="secondary-btn action-btn" onclick="clearText('encodeInput', 'encodeOutput')">清空</button>
+                    </div>
+                </div>
+
+                <!-- 文本去重工具 -->
+                <div class="tool-section">
+                    <h3 class="tool-title">文本去重</h3>
+                    <p class="tool-description">去除重复的文本行，支持多种去重选项</p>
+                    
+                    <div class="input-group">
+                        <label class="input-label">输入文本（每行一个条目）：</label>
+                        <textarea id="dedupeInput" class="text-input" placeholder="请输入需要去重的文本，每行一个条目..."></textarea>
+                    </div>
+
+                    <div class="button-group">
+                        <button class="action-btn" onclick="removeDuplicates(false)">去除重复行</button>
+                        <button class="action-btn" onclick="removeDuplicates(true)">去重（忽略大小写）</button>
+                        <button class="action-btn" onclick="removeEmptyLines()">去除空行</button>
+                        <button class="action-btn" onclick="sortLines()">排序去重</button>
+                    </div>
+
+                    <div class="input-group">
+                        <label class="input-label">输出结果：</label>
+                        <textarea id="dedupeOutput" class="text-input text-output" readonly></textarea>
+                    </div>
+
+                    <div class="stats" id="dedupeStats" style="display: none;">
+                        <div class="stats-title">统计信息</div>
+                        <div class="stats-content" id="dedupeStatsContent"></div>
+                    </div>
+
+                    <div class="button-group">
+                        <button class="secondary-btn action-btn" onclick="copyText('dedupeOutput')">复制结果</button>
+                        <button class="secondary-btn action-btn" onclick="clearText('dedupeInput', 'dedupeOutput')">清空</button>
+                    </div>
+                </div>
+
+                <!-- 大小写转换工具 -->
+                <div class="tool-section">
+                    <h3 class="tool-title">大小写转换</h3>
+                    <p class="tool-description">快速转换文本的大小写格式，支持多种转换模式</p>
+                    
+                    <div class="input-group">
+                        <label class="input-label">输入文本：</label>
+                        <textarea id="caseInput" class="text-input" placeholder="请输入需要转换大小写的文本..."></textarea>
+                    </div>
+
+                    <div class="case-options">
+                        <button class="case-btn" onclick="convertCase('upper')">全部大写</button>
+                        <button class="case-btn" onclick="convertCase('lower')">全部小写</button>
+                        <button class="case-btn" onclick="convertCase('title')">标题格式</button>
+                        <button class="case-btn" onclick="convertCase('sentence')">句子格式</button>
+                        <button class="case-btn" onclick="convertCase('camel')">驼峰格式</button>
+                        <button class="case-btn" onclick="convertCase('snake')">下划线格式</button>
+                    </div>
+
+                    <div class="input-group">
+                        <label class="input-label">输出结果：</label>
+                        <textarea id="caseOutput" class="text-input text-output" readonly></textarea>
+                    </div>
+
+                    <div class="button-group">
+                        <button class="secondary-btn action-btn" onclick="copyText('caseOutput')">复制结果</button>
+                        <button class="secondary-btn action-btn" onclick="clearText('caseInput', 'caseOutput')">清空</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>© 2024 Web工具集 - 让工作更简单</p>
+            <p><a href="https://github.com/wayyoungboy/web_tool" target="_blank">GitHub</a></p>
+        </div>
+    </div>
+
+    <script>
+        // JSON格式化
+        function formatJSON() {
+            const input = document.getElementById('formatInput').value;
+            const output = document.getElementById('formatOutput');
+            
+            try {
+                const parsed = JSON.parse(input);
+                output.value = JSON.stringify(parsed, null, 2);
+            } catch (error) {
+                output.value = '错误：无效的JSON格式\n' + error.message;
+            }
+        }
+
+        // JSON压缩
+        function compressJSON() {
+            const input = document.getElementById('formatInput').value;
+            const output = document.getElementById('formatOutput');
+            
+            try {
+                const parsed = JSON.parse(input);
+                output.value = JSON.stringify(parsed);
+            } catch (error) {
+                output.value = '错误：无效的JSON格式\n' + error.message;
+            }
+        }
+
+        // XML格式化
+        function formatXML() {
+            const input = document.getElementById('formatInput').value;
+            const output = document.getElementById('formatOutput');
+            
+            try {
+                const formatted = formatXMLString(input);
+                output.value = formatted;
+            } catch (error) {
+                output.value = '错误：无效的XML格式\n' + error.message;
+            }
+        }
+
+        function formatXMLString(xml) {
+            let formatted = '', indent = '';
+            const tab = '  ';
+            xml.split(/>\s*</).forEach(function(node) {
+                if (node.match(/^\/\w/)) indent = indent.substring(tab.length);
+                formatted += indent + '<' + node + '>\r\n';
+                if (node.match(/^<?\w[^>]*[^\/]$/)) indent += tab;
+            });
+            return formatted.substring(1, formatted.length-3);
+        }
+
+        // CSS格式化
+        function formatCSS() {
+            const input = document.getElementById('formatInput').value;
+            const output = document.getElementById('formatOutput');
+            
+            let formatted = input
+                .replace(/\s*{\s*/g, ' {\n  ')
+                .replace(/;\s*/g, ';\n  ')
+                .replace(/\s*}\s*/g, '\n}\n\n')
+                .replace(/,\s*/g, ',\n')
+                .trim();
+            
+            output.value = formatted;
+        }
+
+        // Base64编码
+        function encodeBase64() {
+            const input = document.getElementById('encodeInput').value;
+            const output = document.getElementById('encodeOutput');
+            
+            try {
+                output.value = btoa(unescape(encodeURIComponent(input)));
+            } catch (error) {
+                output.value = '错误：编码失败\n' + error.message;
+            }
+        }
+
+        // Base64解码
+        function decodeBase64() {
+            const input = document.getElementById('encodeInput').value;
+            const output = document.getElementById('encodeOutput');
+            
+            try {
+                output.value = decodeURIComponent(escape(atob(input)));
+            } catch (error) {
+                output.value = '错误：解码失败，请确认输入的是有效的Base64字符串\n' + error.message;
+            }
+        }
+
+        // URL编码
+        function encodeURL() {
+            const input = document.getElementById('encodeInput').value;
+            const output = document.getElementById('encodeOutput');
+            output.value = encodeURIComponent(input);
+        }
+
+        // URL解码
+        function decodeURL() {
+            const input = document.getElementById('encodeInput').value;
+            const output = document.getElementById('encodeOutput');
+            
+            try {
+                output.value = decodeURIComponent(input);
+            } catch (error) {
+                output.value = '错误：解码失败\n' + error.message;
+            }
+        }
+
+        // HTML编码
+        function encodeHTML() {
+            const input = document.getElementById('encodeInput').value;
+            const output = document.getElementById('encodeOutput');
+            
+            const div = document.createElement('div');
+            div.textContent = input;
+            output.value = div.innerHTML;
+        }
+
+        // HTML解码
+        function decodeHTML() {
+            const input = document.getElementById('encodeInput').value;
+            const output = document.getElementById('encodeOutput');
+            
+            const div = document.createElement('div');
+            div.innerHTML = input;
+            output.value = div.textContent || div.innerText || '';
+        }
+
+        // 去除重复行
+        function removeDuplicates(ignoreCase = false) {
+            const input = document.getElementById('dedupeInput').value;
+            const output = document.getElementById('dedupeOutput');
+            const statsDiv = document.getElementById('dedupeStats');
+            const statsContent = document.getElementById('dedupeStatsContent');
+            
+            if (!input.trim()) {
+                output.value = '';
+                statsDiv.style.display = 'none';
+                return;
+            }
+
+            const lines = input.split('\n');
+            const originalCount = lines.length;
+            
+            const seen = new Set();
+            const unique = [];
+            
+            lines.forEach(line => {
+                const checkLine = ignoreCase ? line.toLowerCase() : line;
+                if (!seen.has(checkLine)) {
+                    seen.add(checkLine);
+                    unique.push(line);
+                }
+            });
+            
+            output.value = unique.join('\n');
+            
+            const duplicateCount = originalCount - unique.length;
+            statsContent.innerHTML = `
+                原始行数: ${originalCount}<br>
+                去重后行数: ${unique.length}<br>
+                移除重复行: ${duplicateCount}
+            `;
+            statsDiv.style.display = 'block';
+        }
+
+        // 去除空行
+        function removeEmptyLines() {
+            const input = document.getElementById('dedupeInput').value;
+            const output = document.getElementById('dedupeOutput');
+            const statsDiv = document.getElementById('dedupeStats');
+            const statsContent = document.getElementById('dedupeStatsContent');
+            
+            const lines = input.split('\n');
+            const originalCount = lines.length;
+            const nonEmpty = lines.filter(line => line.trim() !== '');
+            
+            output.value = nonEmpty.join('\n');
+            
+            const emptyCount = originalCount - nonEmpty.length;
+            statsContent.innerHTML = `
+                原始行数: ${originalCount}<br>
+                处理后行数: ${nonEmpty.length}<br>
+                移除空行: ${emptyCount}
+            `;
+            statsDiv.style.display = 'block';
+        }
+
+        // 排序去重
+        function sortLines() {
+            const input = document.getElementById('dedupeInput').value;
+            const output = document.getElementById('dedupeOutput');
+            const statsDiv = document.getElementById('dedupeStats');
+            const statsContent = document.getElementById('dedupeStatsContent');
+            
+            if (!input.trim()) {
+                output.value = '';
+                statsDiv.style.display = 'none';
+                return;
+            }
+
+            const lines = input.split('\n');
+            const originalCount = lines.length;
+            
+            const unique = [...new Set(lines)].sort();
+            
+            output.value = unique.join('\n');
+            
+            const duplicateCount = originalCount - unique.length;
+            statsContent.innerHTML = `
+                原始行数: ${originalCount}<br>
+                去重排序后行数: ${unique.length}<br>
+                移除重复行: ${duplicateCount}
+            `;
+            statsDiv.style.display = 'block';
+        }
+
+        // 大小写转换
+        function convertCase(type) {
+            const input = document.getElementById('caseInput').value;
+            const output = document.getElementById('caseOutput');
+            
+            if (!input) {
+                output.value = '';
+                return;
+            }
+
+            let result = input;
+            
+            switch (type) {
+                case 'upper':
+                    result = input.toUpperCase();
+                    break;
+                case 'lower':
+                    result = input.toLowerCase();
+                    break;
+                case 'title':
+                    result = input.replace(/\w\S*/g, (txt) => 
+                        txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase());
+                    break;
+                case 'sentence':
+                    result = input.toLowerCase().replace(/(^\w|\.\s+\w)/g, (txt) => 
+                        txt.toUpperCase());
+                    break;
+                case 'camel':
+                    result = input.replace(/(?:^\w|[A-Z]|\b\w)/g, (word, index) => 
+                        index === 0 ? word.toLowerCase() : word.toUpperCase()).replace(/\s+/g, '');
+                    break;
+                case 'snake':
+                    result = input.toLowerCase().replace(/\s+/g, '_');
+                    break;
+            }
+            
+            output.value = result;
+        }
+
+        // 复制文本
+        function copyText(outputId) {
+            const output = document.getElementById(outputId);
+            output.select();
+            output.setSelectionRange(0, 99999);
+            
+            try {
+                document.execCommand('copy');
+                // 简单的反馈
+                const btn = event.target;
+                const originalText = btn.textContent;
+                btn.textContent = '已复制!';
+                setTimeout(() => {
+                    btn.textContent = originalText;
+                }, 1000);
+            } catch (err) {
+                console.error('复制失败:', err);
+            }
+        }
+
+        // 清空文本
+        function clearText(inputId, outputId) {
+            document.getElementById(inputId).value = '';
+            document.getElementById(outputId).value = '';
+            
+            // 隐藏统计信息
+            if (inputId === 'dedupeInput') {
+                document.getElementById('dedupeStats').style.display = 'none';
+            }
+        }
+    </script>
+</body>
+</html>

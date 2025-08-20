@@ -1,0 +1,875 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>开发工具 - Web工具集</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            position: relative;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            font-weight: 300;
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .back-btn {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            text-decoration: none;
+            font-size: 0.9em;
+            transition: background 0.3s ease;
+        }
+
+        .back-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        .tools-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 30px;
+        }
+
+        .tool-section {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 25px;
+            border: 2px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .tool-section:hover {
+            border-color: #667eea;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .tool-title {
+            font-size: 1.4em;
+            color: #333;
+            margin-bottom: 15px;
+            font-weight: 500;
+        }
+
+        .tool-description {
+            color: #666;
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .input-label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 500;
+        }
+
+        .text-input {
+            width: 100%;
+            min-height: 120px;
+            padding: 15px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            resize: vertical;
+            transition: border-color 0.3s ease;
+        }
+
+        .text-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .text-output {
+            background: #f0f4f8;
+            border: 2px solid #e2e8f0;
+        }
+
+        .single-line-input {
+            min-height: auto;
+            height: 45px;
+            resize: none;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 15px;
+        }
+
+        .action-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: transform 0.3s ease;
+        }
+
+        .action-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .action-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .secondary-btn {
+            background: #6c757d;
+        }
+
+        .secondary-btn:hover {
+            background: #5a6268;
+        }
+
+        .timestamp-inputs {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 10px;
+            align-items: end;
+            margin-bottom: 15px;
+        }
+
+        .timestamp-result {
+            background: #e3f2fd;
+            border: 1px solid #2196f3;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+
+        .timestamp-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+            padding: 8px;
+            background: white;
+            border-radius: 6px;
+        }
+
+        .timestamp-label {
+            font-weight: 500;
+            color: #333;
+        }
+
+        .timestamp-value {
+            font-family: 'Courier New', monospace;
+            color: #1976d2;
+            cursor: pointer;
+        }
+
+        .timestamp-value:hover {
+            text-decoration: underline;
+        }
+
+        .json-tree {
+            max-height: 300px;
+            overflow-y: auto;
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85em;
+            line-height: 1.4;
+        }
+
+        .json-key {
+            color: #9cdcfe;
+        }
+
+        .json-string {
+            color: #ce9178;
+        }
+
+        .json-number {
+            color: #b5cea8;
+        }
+
+        .json-boolean {
+            color: #569cd6;
+        }
+
+        .json-null {
+            color: #808080;
+        }
+
+        .hash-result {
+            background: #f8f9fa;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+
+        .hash-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            padding: 8px;
+            background: white;
+            border-radius: 6px;
+        }
+
+        .hash-label {
+            font-weight: 500;
+            color: #333;
+            min-width: 80px;
+        }
+
+        .hash-value {
+            font-family: 'Courier New', monospace;
+            color: #666;
+            cursor: pointer;
+            word-break: break-all;
+            flex: 1;
+            margin: 0 10px;
+        }
+
+        .hash-value:hover {
+            background: #f0f4f8;
+        }
+
+        .copy-btn {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 4px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.8em;
+        }
+
+        .copy-btn:hover {
+            background: #218838;
+        }
+
+        .footer {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+            font-size: 0.9em;
+            border-top: 1px solid #eee;
+        }
+
+        @media (max-width: 768px) {
+            .content {
+                padding: 20px;
+            }
+            
+            .tools-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            
+            .button-group {
+                flex-direction: column;
+            }
+            
+            .timestamp-inputs {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <a href="index.html" class="back-btn">← 返回主页</a>
+            <h1>🔧 开发工具</h1>
+            <p>JSON格式化、Base64转换、URL编码等开发者常用工具</p>
+        </div>
+
+        <div class="content">
+            <div class="tools-grid">
+                <!-- JSON工具 -->
+                <div class="tool-section">
+                    <h3 class="tool-title">JSON工具</h3>
+                    <p class="tool-description">JSON格式化、压缩、验证和美化</p>
+                    
+                    <div class="input-group">
+                        <label class="input-label">输入JSON：</label>
+                        <textarea id="jsonInput" class="text-input" placeholder='{"name": "example", "data": [1,2,3]}'></textarea>
+                    </div>
+
+                    <div class="button-group">
+                        <button class="action-btn" onclick="formatJSON()">格式化JSON</button>
+                        <button class="action-btn" onclick="compressJSON()">压缩JSON</button>
+                        <button class="action-btn" onclick="validateJSON()">验证JSON</button>
+                        <button class="action-btn" onclick="escapeJSON()">转义JSON</button>
+                    </div>
+
+                    <div class="input-group">
+                        <label class="input-label">输出结果：</label>
+                        <textarea id="jsonOutput" class="text-input text-output" readonly></textarea>
+                    </div>
+
+                    <div class="button-group">
+                        <button class="secondary-btn action-btn" onclick="copyText('jsonOutput')">复制结果</button>
+                        <button class="secondary-btn action-btn" onclick="clearText('jsonInput', 'jsonOutput')">清空</button>
+                    </div>
+                </div>
+
+                <!-- Base64工具 -->
+                <div class="tool-section">
+                    <h3 class="tool-title">Base64工具</h3>
+                    <p class="tool-description">Base64编码和解码，支持文本和文件</p>
+                    
+                    <div class="input-group">
+                        <label class="input-label">输入文本：</label>
+                        <textarea id="base64Input" class="text-input" placeholder="请输入要编码或解码的文本..."></textarea>
+                    </div>
+
+                    <div class="button-group">
+                        <button class="action-btn" onclick="encodeBase64()">Base64编码</button>
+                        <button class="action-btn" onclick="decodeBase64()">Base64解码</button>
+                        <button class="action-btn" onclick="encodeBase64URL()">URL安全编码</button>
+                        <button class="action-btn" onclick="decodeBase64URL()">URL安全解码</button>
+                    </div>
+
+                    <div class="input-group">
+                        <label class="input-label">输出结果：</label>
+                        <textarea id="base64Output" class="text-input text-output" readonly></textarea>
+                    </div>
+
+                    <div class="button-group">
+                        <button class="secondary-btn action-btn" onclick="copyText('base64Output')">复制结果</button>
+                        <button class="secondary-btn action-btn" onclick="clearText('base64Input', 'base64Output')">清空</button>
+                    </div>
+                </div>
+
+                <!-- URL工具 -->
+                <div class="tool-section">
+                    <h3 class="tool-title">URL工具</h3>
+                    <p class="tool-description">URL编码、解码和解析</p>
+                    
+                    <div class="input-group">
+                        <label class="input-label">输入URL或文本：</label>
+                        <textarea id="urlInput" class="text-input" placeholder="https://example.com/path?param=值"></textarea>
+                    </div>
+
+                    <div class="button-group">
+                        <button class="action-btn" onclick="encodeURL()">URL编码</button>
+                        <button class="action-btn" onclick="decodeURL()">URL解码</button>
+                        <button class="action-btn" onclick="parseURL()">解析URL</button>
+                        <button class="action-btn" onclick="encodeComponent()">组件编码</button>
+                    </div>
+
+                    <div class="input-group">
+                        <label class="input-label">输出结果：</label>
+                        <textarea id="urlOutput" class="text-input text-output" readonly></textarea>
+                    </div>
+
+                    <div class="button-group">
+                        <button class="secondary-btn action-btn" onclick="copyText('urlOutput')">复制结果</button>
+                        <button class="secondary-btn action-btn" onclick="clearText('urlInput', 'urlOutput')">清空</button>
+                    </div>
+                </div>
+
+                <!-- 时间戳工具 -->
+                <div class="tool-section">
+                    <h3 class="tool-title">时间戳工具</h3>
+                    <p class="tool-description">时间戳转换和格式化</p>
+                    
+                    <div class="timestamp-inputs">
+                        <input type="text" id="timestampInput" class="text-input single-line-input" placeholder="输入时间戳或日期时间">
+                        <button class="action-btn" onclick="convertTimestamp()">转换</button>
+                    </div>
+
+                    <div class="button-group">
+                        <button class="action-btn" onclick="getCurrentTimestamp()">当前时间戳</button>
+                        <button class="action-btn" onclick="parseDateTime()">解析日期时间</button>
+                    </div>
+
+                    <div class="timestamp-result" id="timestampResult" style="display: none;">
+                        <div class="timestamp-item">
+                            <span class="timestamp-label">时间戳(秒):</span>
+                            <span class="timestamp-value" id="timestampSeconds" onclick="copyToClipboard(this.textContent)"></span>
+                        </div>
+                        <div class="timestamp-item">
+                            <span class="timestamp-label">时间戳(毫秒):</span>
+                            <span class="timestamp-value" id="timestampMillis" onclick="copyToClipboard(this.textContent)"></span>
+                        </div>
+                        <div class="timestamp-item">
+                            <span class="timestamp-label">本地时间:</span>
+                            <span class="timestamp-value" id="localTime" onclick="copyToClipboard(this.textContent)"></span>
+                        </div>
+                        <div class="timestamp-item">
+                            <span class="timestamp-label">UTC时间:</span>
+                            <span class="timestamp-value" id="utcTime" onclick="copyToClipboard(this.textContent)"></span>
+                        </div>
+                        <div class="timestamp-item">
+                            <span class="timestamp-label">ISO格式:</span>
+                            <span class="timestamp-value" id="isoTime" onclick="copyToClipboard(this.textContent)"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 哈希工具 -->
+                <div class="tool-section">
+                    <h3 class="tool-title">哈希工具</h3>
+                    <p class="tool-description">生成各种哈希值（仅客户端实现）</p>
+                    
+                    <div class="input-group">
+                        <label class="input-label">输入文本：</label>
+                        <textarea id="hashInput" class="text-input" placeholder="请输入要生成哈希的文本..."></textarea>
+                    </div>
+
+                    <div class="button-group">
+                        <button class="action-btn" onclick="generateHash()">生成哈希</button>
+                        <button class="secondary-btn action-btn" onclick="clearText('hashInput')">清空</button>
+                    </div>
+
+                    <div class="hash-result" id="hashResult" style="display: none;"></div>
+                </div>
+
+                <!-- UUID工具 -->
+                <div class="tool-section">
+                    <h3 class="tool-title">UUID工具</h3>
+                    <p class="tool-description">生成各种版本的UUID</p>
+                    
+                    <div class="button-group">
+                        <button class="action-btn" onclick="generateUUID()">生成UUID v4</button>
+                        <button class="action-btn" onclick="generateMultipleUUID()">批量生成(10个)</button>
+                        <button class="action-btn" onclick="validateUUID()">验证UUID</button>
+                    </div>
+
+                    <div class="input-group">
+                        <label class="input-label">UUID结果：</label>
+                        <textarea id="uuidOutput" class="text-input text-output" readonly></textarea>
+                    </div>
+
+                    <div class="button-group">
+                        <button class="secondary-btn action-btn" onclick="copyText('uuidOutput')">复制结果</button>
+                        <button class="secondary-btn action-btn" onclick="clearText('uuidOutput')">清空</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>© 2024 Web工具集 - 让工作更简单</p>
+            <p><a href="https://github.com/wayyoungboy/web_tool" target="_blank">GitHub</a></p>
+        </div>
+    </div>
+
+    <script>
+        // JSON工具函数
+        function formatJSON() {
+            const input = document.getElementById('jsonInput').value;
+            const output = document.getElementById('jsonOutput');
+            
+            try {
+                const parsed = JSON.parse(input);
+                output.value = JSON.stringify(parsed, null, 2);
+            } catch (error) {
+                output.value = '错误：无效的JSON格式\n' + error.message;
+            }
+        }
+
+        function compressJSON() {
+            const input = document.getElementById('jsonInput').value;
+            const output = document.getElementById('jsonOutput');
+            
+            try {
+                const parsed = JSON.parse(input);
+                output.value = JSON.stringify(parsed);
+            } catch (error) {
+                output.value = '错误：无效的JSON格式\n' + error.message;
+            }
+        }
+
+        function validateJSON() {
+            const input = document.getElementById('jsonInput').value;
+            const output = document.getElementById('jsonOutput');
+            
+            try {
+                const parsed = JSON.parse(input);
+                output.value = '✓ JSON格式有效\n\n详细信息:\n' +
+                    `类型: ${Array.isArray(parsed) ? 'Array' : typeof parsed}\n` +
+                    `长度: ${Array.isArray(parsed) ? parsed.length : Object.keys(parsed).length} ${Array.isArray(parsed) ? '项' : '键'}`;
+            } catch (error) {
+                output.value = '✗ JSON格式无效\n\n错误信息:\n' + error.message;
+            }
+        }
+
+        function escapeJSON() {
+            const input = document.getElementById('jsonInput').value;
+            const output = document.getElementById('jsonOutput');
+            output.value = JSON.stringify(input);
+        }
+
+        // Base64工具函数
+        function encodeBase64() {
+            const input = document.getElementById('base64Input').value;
+            const output = document.getElementById('base64Output');
+            
+            try {
+                output.value = btoa(unescape(encodeURIComponent(input)));
+            } catch (error) {
+                output.value = '错误：编码失败\n' + error.message;
+            }
+        }
+
+        function decodeBase64() {
+            const input = document.getElementById('base64Input').value;
+            const output = document.getElementById('base64Output');
+            
+            try {
+                output.value = decodeURIComponent(escape(atob(input)));
+            } catch (error) {
+                output.value = '错误：解码失败，请确认输入的是有效的Base64字符串\n' + error.message;
+            }
+        }
+
+        function encodeBase64URL() {
+            const input = document.getElementById('base64Input').value;
+            const output = document.getElementById('base64Output');
+            
+            try {
+                const base64 = btoa(unescape(encodeURIComponent(input)));
+                output.value = base64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
+            } catch (error) {
+                output.value = '错误：编码失败\n' + error.message;
+            }
+        }
+
+        function decodeBase64URL() {
+            const input = document.getElementById('base64Input').value;
+            const output = document.getElementById('base64Output');
+            
+            try {
+                let base64 = input.replace(/-/g, '+').replace(/_/g, '/');
+                while (base64.length % 4) {
+                    base64 += '=';
+                }
+                output.value = decodeURIComponent(escape(atob(base64)));
+            } catch (error) {
+                output.value = '错误：解码失败\n' + error.message;
+            }
+        }
+
+        // URL工具函数
+        function encodeURL() {
+            const input = document.getElementById('urlInput').value;
+            const output = document.getElementById('urlOutput');
+            output.value = encodeURI(input);
+        }
+
+        function decodeURL() {
+            const input = document.getElementById('urlInput').value;
+            const output = document.getElementById('urlOutput');
+            
+            try {
+                output.value = decodeURI(input);
+            } catch (error) {
+                output.value = '错误：解码失败\n' + error.message;
+            }
+        }
+
+        function encodeComponent() {
+            const input = document.getElementById('urlInput').value;
+            const output = document.getElementById('urlOutput');
+            output.value = encodeURIComponent(input);
+        }
+
+        function parseURL() {
+            const input = document.getElementById('urlInput').value;
+            const output = document.getElementById('urlOutput');
+            
+            try {
+                const url = new URL(input);
+                const result = {
+                    protocol: url.protocol,
+                    hostname: url.hostname,
+                    port: url.port,
+                    pathname: url.pathname,
+                    search: url.search,
+                    hash: url.hash,
+                    origin: url.origin
+                };
+                
+                let parseResult = 'URL解析结果:\n\n';
+                for (const [key, value] of Object.entries(result)) {
+                    if (value) {
+                        parseResult += `${key}: ${value}\n`;
+                    }
+                }
+                
+                if (url.searchParams.size > 0) {
+                    parseResult += '\n查询参数:\n';
+                    for (const [key, value] of url.searchParams) {
+                        parseResult += `  ${key} = ${value}\n`;
+                    }
+                }
+                
+                output.value = parseResult;
+            } catch (error) {
+                output.value = '错误：无效的URL\n' + error.message;
+            }
+        }
+
+        // 时间戳工具函数
+        function getCurrentTimestamp() {
+            const now = new Date();
+            displayTimestamp(now);
+        }
+
+        function convertTimestamp() {
+            const input = document.getElementById('timestampInput').value.trim();
+            
+            if (!input) {
+                alert('请输入时间戳或日期时间');
+                return;
+            }
+
+            let date;
+            
+            // 尝试解析为时间戳
+            if (/^\d+$/.test(input)) {
+                const timestamp = parseInt(input);
+                // 判断是秒还是毫秒
+                date = new Date(timestamp.toString().length === 10 ? timestamp * 1000 : timestamp);
+            } else {
+                // 尝试解析为日期字符串
+                date = new Date(input);
+            }
+
+            if (isNaN(date.getTime())) {
+                alert('无法解析输入的时间格式');
+                return;
+            }
+
+            displayTimestamp(date);
+        }
+
+        function parseDateTime() {
+            const input = document.getElementById('timestampInput').value.trim();
+            
+            if (!input) {
+                getCurrentTimestamp();
+                return;
+            }
+
+            const date = new Date(input);
+            
+            if (isNaN(date.getTime())) {
+                alert('无法解析输入的日期时间格式\n支持格式如：\n2024-01-01\n2024-01-01 12:00:00\n2024/01/01');
+                return;
+            }
+
+            displayTimestamp(date);
+        }
+
+        function displayTimestamp(date) {
+            document.getElementById('timestampSeconds').textContent = Math.floor(date.getTime() / 1000);
+            document.getElementById('timestampMillis').textContent = date.getTime();
+            document.getElementById('localTime').textContent = date.toLocaleString();
+            document.getElementById('utcTime').textContent = date.toUTCString();
+            document.getElementById('isoTime').textContent = date.toISOString();
+            
+            document.getElementById('timestampResult').style.display = 'block';
+        }
+
+        // 简单哈希函数（仅供演示，不用于安全目的）
+        function simpleHash(str) {
+            let hash = 0;
+            if (str.length === 0) return hash;
+            for (let i = 0; i < str.length; i++) {
+                const char = str.charCodeAt(i);
+                hash = ((hash << 5) - hash) + char;
+                hash = hash & hash; // 转换为32位整数
+            }
+            return Math.abs(hash).toString(16);
+        }
+
+        function generateHash() {
+            const input = document.getElementById('hashInput').value;
+            const output = document.getElementById('hashResult');
+            
+            if (!input.trim()) {
+                alert('请输入要生成哈希的文本');
+                return;
+            }
+
+            const hashes = [
+                { name: 'Simple Hash', value: simpleHash(input) },
+                { name: 'CRC32 (模拟)', value: crc32(input) },
+                { name: 'Java HashCode', value: javaHashCode(input) }
+            ];
+
+            let html = '';
+            hashes.forEach(hash => {
+                html += `
+                    <div class="hash-item">
+                        <span class="hash-label">${hash.name}:</span>
+                        <span class="hash-value" onclick="copyToClipboard('${hash.value}')">${hash.value}</span>
+                        <button class="copy-btn" onclick="copyToClipboard('${hash.value}')">复制</button>
+                    </div>
+                `;
+            });
+
+            output.innerHTML = html;
+            output.style.display = 'block';
+        }
+
+        function crc32(str) {
+            // 简化的CRC32实现
+            let crc = 0;
+            for (let i = 0; i < str.length; i++) {
+                crc = (crc << 8) ^ str.charCodeAt(i);
+            }
+            return Math.abs(crc).toString(16);
+        }
+
+        function javaHashCode(str) {
+            let hash = 0;
+            for (let i = 0; i < str.length; i++) {
+                hash = Math.imul(31, hash) + str.charCodeAt(i) | 0;
+            }
+            return Math.abs(hash).toString(16);
+        }
+
+        // UUID工具函数
+        function generateUUID() {
+            const uuid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+                const r = Math.random() * 16 | 0;
+                const v = c === 'x' ? r : (r & 0x3 | 0x8);
+                return v.toString(16);
+            });
+            
+            document.getElementById('uuidOutput').value = uuid;
+        }
+
+        function generateMultipleUUID() {
+            const uuids = [];
+            for (let i = 0; i < 10; i++) {
+                const uuid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+                    const r = Math.random() * 16 | 0;
+                    const v = c === 'x' ? r : (r & 0x3 | 0x8);
+                    return v.toString(16);
+                });
+                uuids.push(uuid);
+            }
+            
+            document.getElementById('uuidOutput').value = uuids.join('\n');
+        }
+
+        function validateUUID() {
+            const input = prompt('请输入要验证的UUID:');
+            if (input === null) return;
+            
+            const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+            const isValid = uuidRegex.test(input);
+            
+            document.getElementById('uuidOutput').value = 
+                `UUID: ${input}\n` +
+                `验证结果: ${isValid ? '✓ 有效' : '✗ 无效'}\n` +
+                `格式: UUID v${input.charAt(14) || '?'}`;
+        }
+
+        // 通用工具函数
+        function copyText(outputId) {
+            const output = document.getElementById(outputId);
+            output.select();
+            output.setSelectionRange(0, 99999);
+            
+            try {
+                document.execCommand('copy');
+                showCopyFeedback();
+            } catch (err) {
+                console.error('复制失败:', err);
+            }
+        }
+
+        function clearText(inputId, outputId = null) {
+            document.getElementById(inputId).value = '';
+            if (outputId) {
+                document.getElementById(outputId).value = '';
+            }
+            
+            // 隐藏相关结果
+            if (inputId === 'hashInput') {
+                document.getElementById('hashResult').style.display = 'none';
+            }
+        }
+
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                showCopyFeedback();
+            }).catch(err => {
+                console.error('复制失败:', err);
+            });
+        }
+
+        function showCopyFeedback() {
+            const originalTitle = document.title;
+            document.title = '已复制!';
+            setTimeout(() => {
+                document.title = originalTitle;
+            }, 1000);
+        }
+
+        // 页面加载完成后初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            getCurrentTimestamp();
+        });
+    </script>
+</body>
+</html>

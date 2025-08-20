@@ -3,9 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PDF合并工具 - 纯前端版</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    <title>Web工具集 - 欢迎页</title>
     <style>
         * {
             margin: 0;
@@ -21,7 +19,7 @@
         }
 
         .container {
-            max-width: 800px;
+            max-width: 1200px;
             margin: 0 auto;
             background: white;
             border-radius: 20px;
@@ -32,535 +30,294 @@
         .header {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
-            padding: 30px;
+            padding: 50px 30px;
             text-align: center;
         }
 
         .header h1 {
-            font-size: 2.5em;
-            margin-bottom: 10px;
+            font-size: 3em;
+            margin-bottom: 15px;
             font-weight: 300;
         }
 
         .header p {
-            font-size: 1.1em;
+            font-size: 1.3em;
             opacity: 0.9;
+            max-width: 600px;
+            margin: 0 auto;
+            line-height: 1.6;
         }
 
         .content {
-            padding: 40px;
+            padding: 50px;
         }
 
-        .upload-area {
-            border: 3px dashed #ddd;
-            border-radius: 15px;
-            padding: 40px;
+        .welcome-section {
             text-align: center;
-            margin-bottom: 30px;
+            margin-bottom: 50px;
+        }
+
+        .welcome-section h2 {
+            font-size: 2.2em;
+            color: #333;
+            margin-bottom: 20px;
+            font-weight: 300;
+        }
+
+        .welcome-section p {
+            font-size: 1.1em;
+            color: #666;
+            max-width: 700px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+
+        .tools-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-top: 40px;
+        }
+
+        .tool-card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
             transition: all 0.3s ease;
             cursor: pointer;
+            border: 2px solid transparent;
+            text-decoration: none;
+            color: inherit;
+            display: block;
         }
 
-        .upload-area:hover {
+        .tool-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
             border-color: #667eea;
-            background-color: #f8f9ff;
         }
 
-        .upload-area.dragover {
-            border-color: #667eea;
-            background-color: #f0f4ff;
-        }
-
-        .upload-icon {
+        .tool-icon {
             font-size: 3em;
             color: #667eea;
             margin-bottom: 20px;
-        }
-
-        .upload-text {
-            font-size: 1.2em;
-            color: #666;
-            margin-bottom: 15px;
-        }
-
-        .upload-hint {
-            color: #999;
-            font-size: 0.9em;
-        }
-
-        .feature-badge {
-            background: #28a745;
-            color: white;
-            padding: 5px 10px;
-            border-radius: 15px;
-            font-size: 0.8em;
-            margin-left: 10px;
-        }
-
-        #fileInput {
-            display: none;
-        }
-
-        .file-list {
-            margin-bottom: 30px;
-        }
-
-        .file-item {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 15px;
-            background: #f8f9fa;
-            border-radius: 10px;
-            margin-bottom: 10px;
-            border-left: 4px solid #667eea;
-        }
-
-        .file-info {
-            display: flex;
-            align-items: center;
-            flex: 1;
-        }
-
-        .file-icon {
-            font-size: 1.5em;
-            color: #667eea;
-            margin-right: 15px;
-        }
-
-        .file-details {
-            flex: 1;
-        }
-
-        .file-name {
-            font-weight: 500;
-            color: #333;
-            margin-bottom: 5px;
-        }
-
-        .file-size {
-            color: #666;
-            font-size: 0.9em;
-        }
-
-        .file-pages {
-            color: #28a745;
-            font-size: 0.9em;
-            margin-left: 10px;
-        }
-
-        .remove-btn {
-            background: #ff4757;
-            color: white;
-            border: none;
-            padding: 8px 12px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 0.9em;
-            transition: background 0.3s ease;
-        }
-
-        .remove-btn:hover {
-            background: #ff3742;
-        }
-
-        .merge-btn {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            padding: 15px 30px;
-            border-radius: 10px;
-            font-size: 1.1em;
-            cursor: pointer;
-            width: 100%;
-            transition: transform 0.3s ease;
-            margin-bottom: 20px;
-        }
-
-        .merge-btn:hover {
-            transform: translateY(-2px);
-        }
-
-        .merge-btn:disabled {
-            background: #ccc;
-            cursor: not-allowed;
-            transform: none;
-        }
-
-        .progress-bar {
-            width: 100%;
-            height: 6px;
-            background: #f0f0f0;
-            border-radius: 3px;
-            overflow: hidden;
-            margin-bottom: 20px;
-            display: none;
-        }
-
-        .progress-fill {
-            height: 100%;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            width: 0%;
-            transition: width 0.3s ease;
-        }
-
-        .status {
             text-align: center;
-            padding: 15px;
-            border-radius: 10px;
+        }
+
+        .tool-title {
+            font-size: 1.5em;
+            color: #333;
+            margin-bottom: 15px;
+            text-align: center;
+            font-weight: 500;
+        }
+
+        .tool-description {
+            color: #666;
+            line-height: 1.6;
+            text-align: center;
             margin-bottom: 20px;
-            display: none;
         }
 
-        .status.success {
-            background: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
+        .tool-features {
+            list-style: none;
+            margin-bottom: 20px;
         }
 
-        .status.error {
-            background: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
+        .tool-features li {
+            color: #666;
+            margin-bottom: 8px;
+            padding-left: 20px;
+            position: relative;
         }
 
-        .download-btn {
-            background: #28a745;
+        .tool-features li:before {
+            content: "✓";
+            color: #28a745;
+            font-weight: bold;
+            position: absolute;
+            left: 0;
+        }
+
+        .tool-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             border: none;
             padding: 12px 25px;
             border-radius: 8px;
-            cursor: pointer;
             font-size: 1em;
+            cursor: pointer;
+            width: 100%;
+            transition: transform 0.3s ease;
             text-decoration: none;
             display: inline-block;
-            margin-top: 10px;
-            transition: background 0.3s ease;
+            text-align: center;
         }
 
-        .download-btn:hover {
-            background: #218838;
+        .tool-btn:hover {
+            transform: translateY(-2px);
         }
 
-        .clear-btn {
-            background: #6c757d;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 0.9em;
-            transition: background 0.3s ease;
+        .coming-soon {
+            background: #f8f9fa;
+            border: 2px dashed #ddd;
+            opacity: 0.7;
         }
 
-        .clear-btn:hover {
-            background: #5a6268;
+        .coming-soon:hover {
+            transform: none;
+            border-color: #ddd;
         }
 
-        .loading {
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 3px solid #f3f3f3;
-            border-top: 3px solid #667eea;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin-right: 10px;
+        .coming-soon .tool-btn {
+            background: #ccc;
+            cursor: not-allowed;
         }
 
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+        .coming-soon .tool-btn:hover {
+            transform: none;
         }
 
         .footer {
+            background: #f8f9fa;
+            padding: 30px;
             text-align: center;
-            padding: 20px;
             color: #666;
-            font-size: 0.9em;
-            border-top: 1px solid #eee;
         }
 
-        .privacy-notice {
-            background: #e3f2fd;
-            color: #1565c0;
-            padding: 15px;
-            border-radius: 10px;
-            margin-bottom: 20px;
-            border-left: 4px solid #2196f3;
-        }
-
-        .privacy-notice h3 {
+        .footer p {
             margin-bottom: 10px;
-            font-size: 1.1em;
         }
 
-        .privacy-notice p {
-            margin-bottom: 5px;
-            font-size: 0.9em;
+        .footer a {
+            color: #667eea;
+            text-decoration: none;
+        }
+
+        .footer a:hover {
+            text-decoration: underline;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2.2em;
+            }
+            
+            .header p {
+                font-size: 1.1em;
+            }
+            
+            .content {
+                padding: 30px 20px;
+            }
+            
+            .tools-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1>📄 PDF合并工具 <span class="feature-badge">纯前端版</span></h1>
-            <p>完全在浏览器中处理，保护您的隐私安全</p>
+            <h1>Web工具集</h1>
+            <p>简单、高效、免费的在线工具集合，无需下载，即开即用</p>
         </div>
 
         <div class="content">
-            <div class="privacy-notice">
-                <h3>🔒 隐私保护</h3>
-                <p>• 所有文件处理都在您的浏览器中进行</p>
-                <p>• 文件不会上传到任何服务器</p>
-                <p>• 处理完成后文件自动从内存中清除</p>
+            <div class="welcome-section">
+                <h2>欢迎使用我们的工具集</h2>
+                <p>这里收集了各种实用的在线工具，帮助您提高工作效率。所有工具都基于纯前端技术开发，保护您的隐私安全。</p>
             </div>
 
-            <div class="upload-area" id="uploadArea">
-                <div class="upload-icon">📁</div>
-                <div class="upload-text">点击选择文件或拖拽PDF文件到此处</div>
-                <div class="upload-hint">支持多个PDF文件，完全本地处理</div>
-                <input type="file" id="fileInput" multiple accept=".pdf">
-            </div>
+            <div class="tools-grid">
+                <a href="pdf_merge.html" class="tool-card">
+                    <div class="tool-icon">📄</div>
+                    <h3 class="tool-title">PDF合并工具</h3>
+                    <p class="tool-description">将多个PDF文件合并成一个文件，支持拖拽上传，操作简单快捷。</p>
+                    <ul class="tool-features">
+                        <li>支持多个PDF文件合并</li>
+                        <li>拖拽上传，操作便捷</li>
+                        <li>纯前端处理，保护隐私</li>
+                        <li>无需注册，免费使用</li>
+                    </ul>
+                    <div class="tool-btn">立即使用</div>
+                </a>
 
-            <div class="file-list" id="fileList"></div>
+                <a href="image_compress.html" class="tool-card">
+                    <div class="tool-icon">🖼️</div>
+                    <h3 class="tool-title">图片压缩工具</h3>
+                    <p class="tool-description">压缩图片文件大小，保持图片质量，支持多种格式。</p>
+                    <ul class="tool-features">
+                        <li>支持JPG、PNG、WebP格式</li>
+                        <li>可调节压缩质量</li>
+                        <li>批量处理功能</li>
+                        <li>实时预览效果</li>
+                    </ul>
+                    <div class="tool-btn">立即使用</div>
+                </a>
 
-            <div class="progress-bar" id="progressBar">
-                <div class="progress-fill" id="progressFill"></div>
-            </div>
+                <a href="text_tools.html" class="tool-card">
+                    <div class="tool-icon">📝</div>
+                    <h3 class="tool-title">文本处理工具</h3>
+                    <p class="tool-description">提供文本格式化、编码转换、去重等实用功能。</p>
+                    <ul class="tool-features">
+                        <li>文本格式化</li>
+                        <li>编码转换</li>
+                        <li>文本去重</li>
+                        <li>大小写转换</li>
+                    </ul>
+                    <div class="tool-btn">立即使用</div>
+                </a>
 
-            <div class="status" id="status"></div>
+                <a href="color_tools.html" class="tool-card">
+                    <div class="tool-icon">🎨</div>
+                    <h3 class="tool-title">颜色工具</h3>
+                    <p class="tool-description">颜色选择器、调色板、颜色转换等设计辅助工具。</p>
+                    <ul class="tool-features">
+                        <li>颜色选择器</li>
+                        <li>调色板生成</li>
+                        <li>颜色格式转换</li>
+                        <li>配色方案推荐</li>
+                    </ul>
+                    <div class="tool-btn">立即使用</div>
+                </a>
 
-            <button class="merge-btn" id="mergeBtn" disabled>
-                开始合并PDF文件
-            </button>
+                <a href="dev_tools.html" class="tool-card">
+                    <div class="tool-icon">🔧</div>
+                    <h3 class="tool-title">开发工具</h3>
+                    <p class="tool-description">JSON格式化、Base64转换、URL编码等开发者常用工具。</p>
+                    <ul class="tool-features">
+                        <li>JSON格式化</li>
+                        <li>Base64转换</li>
+                        <li>URL编码解码</li>
+                        <li>时间戳转换</li>
+                    </ul>
+                    <div class="tool-btn">立即使用</div>
+                </a>
 
-            <div style="text-align: center;">
-                <button class="clear-btn" id="clearBtn" style="display: none;">
-                    清空文件列表
-                </button>
+                <a href="data_tools.html" class="tool-card">
+                    <div class="tool-icon">📊</div>
+                    <h3 class="tool-title">数据分析工具</h3>
+                    <p class="tool-description">CSV处理、数据可视化、统计分析等数据处理工具。</p>
+                    <ul class="tool-features">
+                        <li>CSV文件处理</li>
+                        <li>数据可视化</li>
+                        <li>统计分析</li>
+                        <li>图表生成</li>
+                    </ul>
+                    <div class="tool-btn">立即使用</div>
+                </a>
             </div>
         </div>
 
         <div class="footer">
-            <p>© 2024 PDF合并工具 - 纯前端版本，保护您的隐私安全</p>
+            <p>© 2024 Web工具集 - 让工作更简单</p>
+            <p>所有工具均基于纯前端技术开发，保护您的隐私安全</p>
+            <p><a href="https://github.com/wayyoungboy/web_tool" target="_blank">GitHub</a></p>
         </div>
     </div>
-
-    <script>
-        let uploadedFiles = [];
-        let isProcessing = false;
-
-        const uploadArea = document.getElementById('uploadArea');
-        const fileInput = document.getElementById('fileInput');
-        const fileList = document.getElementById('fileList');
-        const mergeBtn = document.getElementById('mergeBtn');
-        const clearBtn = document.getElementById('clearBtn');
-        const status = document.getElementById('status');
-        const progressBar = document.getElementById('progressBar');
-        const progressFill = document.getElementById('progressFill');
-
-        // 文件上传区域事件
-        uploadArea.addEventListener('click', () => fileInput.click());
-        uploadArea.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            uploadArea.classList.add('dragover');
-        });
-        uploadArea.addEventListener('dragleave', () => {
-            uploadArea.classList.remove('dragover');
-        });
-        uploadArea.addEventListener('drop', (e) => {
-            e.preventDefault();
-            uploadArea.classList.remove('dragover');
-            const files = Array.from(e.dataTransfer.files);
-            handleFiles(files);
-        });
-
-        fileInput.addEventListener('change', (e) => {
-            const files = Array.from(e.target.files);
-            handleFiles(files);
-        });
-
-        function handleFiles(files) {
-            const pdfFiles = files.filter(file => file.type === 'application/pdf');
-            
-            if (pdfFiles.length === 0) {
-                showStatus('请选择PDF文件', 'error');
-                return;
-            }
-
-            processFiles(pdfFiles);
-        }
-
-        async function processFiles(files) {
-            showStatus('正在处理文件...', 'success');
-            
-            for (let file of files) {
-                try {
-                    const arrayBuffer = await file.arrayBuffer();
-                    const pdfDoc = await PDFLib.PDFDocument.load(arrayBuffer);
-                    const pageCount = pdfDoc.getPageCount();
-                    
-                    uploadedFiles.push({
-                        file: file,
-                        name: file.name,
-                        size: formatFileSize(file.size),
-                        pages: pageCount,
-                        arrayBuffer: arrayBuffer
-                    });
-                } catch (error) {
-                    showStatus(`处理文件 ${file.name} 失败: ${error.message}`, 'error');
-                }
-            }
-            
-            updateFileList();
-            showStatus(`成功处理 ${uploadedFiles.length} 个PDF文件`, 'success');
-        }
-
-        function formatFileSize(bytes) {
-            if (bytes === 0) return '0 Bytes';
-            const k = 1024;
-            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-            const i = Math.floor(Math.log(bytes) / Math.log(k));
-            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-        }
-
-        function updateFileList() {
-            fileList.innerHTML = '';
-            
-            uploadedFiles.forEach((fileInfo, index) => {
-                const fileItem = document.createElement('div');
-                fileItem.className = 'file-item';
-                fileItem.innerHTML = `
-                    <div class="file-info">
-                        <div class="file-icon">📄</div>
-                        <div class="file-details">
-                            <div class="file-name">${fileInfo.name}</div>
-                            <div class="file-size">${fileInfo.size} <span class="file-pages">(${fileInfo.pages} 页)</span></div>
-                        </div>
-                    </div>
-                    <button class="remove-btn" onclick="removeFile(${index})">删除</button>
-                `;
-                fileList.appendChild(fileItem);
-            });
-
-            mergeBtn.disabled = uploadedFiles.length === 0;
-            clearBtn.style.display = uploadedFiles.length > 0 ? 'inline-block' : 'none';
-        }
-
-        function removeFile(index) {
-            uploadedFiles.splice(index, 1);
-            updateFileList();
-        }
-
-        mergeBtn.addEventListener('click', async () => {
-            if (isProcessing || uploadedFiles.length === 0) return;
-
-            isProcessing = true;
-            mergeBtn.disabled = true;
-            mergeBtn.innerHTML = '<span class="loading"></span>正在合并...';
-            showProgress();
-
-            try {
-                // 创建新的PDF文档
-                const mergedPdf = await PDFLib.PDFDocument.create();
-                
-                // 处理每个PDF文件
-                for (let i = 0; i < uploadedFiles.length; i++) {
-                    const fileInfo = uploadedFiles[i];
-                    
-                    // 更新进度
-                    const progress = ((i + 1) / uploadedFiles.length) * 100;
-                    progressFill.style.width = progress + '%';
-                    
-                    try {
-                        // 加载PDF文档
-                        const pdfDoc = await PDFLib.PDFDocument.load(fileInfo.arrayBuffer);
-                        
-                        // 复制所有页面到合并文档
-                        const pages = await mergedPdf.copyPages(pdfDoc, pdfDoc.getPageIndices());
-                        pages.forEach(page => mergedPdf.addPage(page));
-                        
-                    } catch (error) {
-                        showStatus(`处理文件 ${fileInfo.name} 时出错: ${error.message}`, 'error');
-                        return;
-                    }
-                }
-
-                // 生成合并后的PDF
-                const mergedPdfBytes = await mergedPdf.save();
-                
-                // 创建下载链接
-                const blob = new Blob([mergedPdfBytes], { type: 'application/pdf' });
-                const url = URL.createObjectURL(blob);
-                
-                showStatus('PDF合并成功！', 'success');
-                showDownloadButton(url, blob);
-                
-            } catch (error) {
-                showStatus('合并失败: ' + error.message, 'error');
-            } finally {
-                isProcessing = false;
-                mergeBtn.disabled = false;
-                mergeBtn.innerHTML = '开始合并PDF文件';
-                hideProgress();
-            }
-        });
-
-        clearBtn.addEventListener('click', () => {
-            uploadedFiles = [];
-            updateFileList();
-            hideStatus();
-            showStatus('文件已清空', 'success');
-        });
-
-        function showStatus(message, type) {
-            status.textContent = message;
-            status.className = `status ${type}`;
-            status.style.display = 'block';
-        }
-
-        function hideStatus() {
-            status.style.display = 'none';
-        }
-
-        function showProgress() {
-            progressBar.style.display = 'block';
-            progressFill.style.width = '0%';
-        }
-
-        function hideProgress() {
-            progressBar.style.display = 'none';
-            progressFill.style.width = '0%';
-        }
-
-        function showDownloadButton(url, blob) {
-            const downloadBtn = document.createElement('a');
-            downloadBtn.href = url;
-            downloadBtn.className = 'download-btn';
-            downloadBtn.textContent = '📥 下载合并后的PDF';
-            downloadBtn.download = 'merged.pdf';
-            
-            // 点击下载后清理URL
-            downloadBtn.addEventListener('click', () => {
-                setTimeout(() => {
-                    URL.revokeObjectURL(url);
-                }, 1000);
-            });
-            
-            status.appendChild(document.createElement('br'));
-            status.appendChild(downloadBtn);
-        }
-
-        // 页面卸载时清理内存
-        window.addEventListener('beforeunload', () => {
-            uploadedFiles.forEach(fileInfo => {
-                if (fileInfo.arrayBuffer) {
-                    fileInfo.arrayBuffer = null;
-                }
-            });
-            uploadedFiles = [];
-        });
-    </script>
 </body>
 </html>

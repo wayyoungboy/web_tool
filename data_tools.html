@@ -1,0 +1,932 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>数据分析工具 - Web工具集</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            position: relative;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            font-weight: 300;
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .back-btn {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            text-decoration: none;
+            font-size: 0.9em;
+            transition: background 0.3s ease;
+        }
+
+        .back-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        .tools-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .tool-section {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 25px;
+            border: 2px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .tool-section:hover {
+            border-color: #667eea;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .tool-title {
+            font-size: 1.4em;
+            color: #333;
+            margin-bottom: 15px;
+            font-weight: 500;
+        }
+
+        .tool-description {
+            color: #666;
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+
+        .upload-area {
+            border: 3px dashed #ddd;
+            border-radius: 10px;
+            padding: 30px;
+            text-align: center;
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .upload-area:hover {
+            border-color: #667eea;
+            background-color: #f8f9ff;
+        }
+
+        .upload-area.dragover {
+            border-color: #667eea;
+            background-color: #f0f4ff;
+        }
+
+        .upload-icon {
+            font-size: 2em;
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        .upload-text {
+            color: #666;
+            margin-bottom: 10px;
+        }
+
+        .upload-hint {
+            color: #999;
+            font-size: 0.9em;
+        }
+
+        #fileInput {
+            display: none;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 15px;
+        }
+
+        .action-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: transform 0.3s ease;
+        }
+
+        .action-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .action-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .secondary-btn {
+            background: #6c757d;
+        }
+
+        .secondary-btn:hover {
+            background: #5a6268;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+            font-size: 0.9em;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .data-table th,
+        .data-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .data-table th {
+            background: #667eea;
+            color: white;
+            font-weight: 500;
+        }
+
+        .data-table tr:hover {
+            background: #f8f9fa;
+        }
+
+        .table-container {
+            max-height: 400px;
+            overflow-y: auto;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .stat-value {
+            font-size: 1.8em;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .chart-container {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .chart-title {
+            font-size: 1.2em;
+            color: #333;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .chart-canvas {
+            max-height: 400px;
+        }
+
+        .filter-controls {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .filter-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+        }
+
+        .filter-input {
+            padding: 8px 12px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            font-size: 0.9em;
+        }
+
+        .filter-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .column-selector {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-bottom: 15px;
+        }
+
+        .column-option {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .export-options {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .export-title {
+            font-weight: 500;
+            color: #1565c0;
+            margin-bottom: 10px;
+        }
+
+        .footer {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+            font-size: 0.9em;
+            border-top: 1px solid #eee;
+        }
+
+        @media (max-width: 768px) {
+            .content {
+                padding: 20px;
+            }
+            
+            .tools-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .filter-group {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <a href="index.html" class="back-btn">← 返回主页</a>
+            <h1>📊 数据分析工具</h1>
+            <p>CSV处理、数据可视化、统计分析等数据处理工具</p>
+        </div>
+
+        <div class="content">
+            <!-- CSV上传区域 -->
+            <div class="tool-section">
+                <h3 class="tool-title">CSV数据上传</h3>
+                <p class="tool-description">上传CSV文件进行数据分析和可视化</p>
+                
+                <div class="upload-area" id="uploadArea">
+                    <div class="upload-icon">📄</div>
+                    <div class="upload-text">点击选择CSV文件或拖拽文件到此处</div>
+                    <div class="upload-hint">支持.csv格式文件，文件大小限制10MB</div>
+                    <input type="file" id="fileInput" accept=".csv">
+                </div>
+
+                <div class="button-group">
+                    <button class="action-btn" id="loadSampleData">加载示例数据</button>
+                    <button class="secondary-btn action-btn" id="clearData" disabled>清空数据</button>
+                </div>
+            </div>
+
+            <!-- 数据预览 -->
+            <div class="tool-section" id="dataPreview" style="display: none;">
+                <h3 class="tool-title">数据预览</h3>
+                <p class="tool-description">查看上传的数据内容和基本信息</p>
+                
+                <div class="table-container">
+                    <table class="data-table" id="dataTable">
+                        <thead id="tableHead"></thead>
+                        <tbody id="tableBody"></tbody>
+                    </table>
+                </div>
+
+                <div class="export-options">
+                    <div class="export-title">导出选项</div>
+                    <div class="button-group">
+                        <button class="secondary-btn action-btn" onclick="exportData('json')">导出为JSON</button>
+                        <button class="secondary-btn action-btn" onclick="exportData('csv')">导出为CSV</button>
+                        <button class="secondary-btn action-btn" onclick="exportData('excel')">导出为Excel</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 统计分析 -->
+            <div class="tool-section" id="statsSection" style="display: none;">
+                <h3 class="tool-title">统计分析</h3>
+                <p class="tool-description">查看数据的基本统计信息</p>
+                
+                <div class="stats-grid" id="statsGrid"></div>
+
+                <div class="filter-controls">
+                    <h4>数据筛选</h4>
+                    <div class="filter-group">
+                        <label>选择列：</label>
+                        <select id="filterColumn" class="filter-input">
+                            <option value="">请选择列</option>
+                        </select>
+                        <label>筛选条件：</label>
+                        <input type="text" id="filterValue" class="filter-input" placeholder="输入筛选值">
+                        <button class="action-btn" onclick="applyFilter()">应用筛选</button>
+                        <button class="secondary-btn action-btn" onclick="clearFilter()">清除筛选</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 数据可视化 -->
+            <div class="tool-section" id="chartSection" style="display: none;">
+                <h3 class="tool-title">数据可视化</h3>
+                <p class="tool-description">生成各种类型的图表</p>
+                
+                <div class="filter-controls">
+                    <h4>图表配置</h4>
+                    <div class="filter-group">
+                        <label>X轴：</label>
+                        <select id="xAxisColumn" class="filter-input">
+                            <option value="">请选择列</option>
+                        </select>
+                        <label>Y轴：</label>
+                        <select id="yAxisColumn" class="filter-input">
+                            <option value="">请选择列</option>
+                        </select>
+                        <label>图表类型：</label>
+                        <select id="chartType" class="filter-input">
+                            <option value="line">折线图</option>
+                            <option value="bar">柱状图</option>
+                            <option value="pie">饼图</option>
+                            <option value="scatter">散点图</option>
+                            <option value="doughnut">环形图</option>
+                        </select>
+                        <button class="action-btn" onclick="generateChart()">生成图表</button>
+                    </div>
+                </div>
+
+                <div class="chart-container" id="chartContainer" style="display: none;">
+                    <div class="chart-title" id="chartTitle">数据图表</div>
+                    <canvas id="dataChart" class="chart-canvas"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>© 2024 Web工具集 - 让工作更简单</p>
+            <p><a href="https://github.com/wayyoungboy/web_tool" target="_blank">GitHub</a></p>
+        </div>
+    </div>
+
+    <script>
+        let csvData = [];
+        let filteredData = [];
+        let currentChart = null;
+
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        const loadSampleBtn = document.getElementById('loadSampleData');
+        const clearDataBtn = document.getElementById('clearData');
+
+        // 文件上传事件
+        uploadArea.addEventListener('click', () => fileInput.click());
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                handleFile(files[0]);
+            }
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                handleFile(e.target.files[0]);
+            }
+        });
+
+        // 加载示例数据
+        loadSampleBtn.addEventListener('click', () => {
+            const sampleData = [
+                ['姓名', '年龄', '城市', '薪资', '部门'],
+                ['张三', '28', '北京', '15000', '技术部'],
+                ['李四', '32', '上海', '18000', '销售部'],
+                ['王五', '25', '广州', '12000', '技术部'],
+                ['赵六', '35', '深圳', '22000', '管理部'],
+                ['钱七', '29', '杭州', '16000', '技术部'],
+                ['孙八', '31', '成都', '14000', '销售部'],
+                ['周九', '27', '武汉', '13000', '技术部'],
+                ['吴十', '33', '西安', '17000', '销售部']
+            ];
+            
+            processData(sampleData);
+        });
+
+        // 清空数据
+        clearDataBtn.addEventListener('click', () => {
+            csvData = [];
+            filteredData = [];
+            clearDataBtn.disabled = true;
+            
+            document.getElementById('dataPreview').style.display = 'none';
+            document.getElementById('statsSection').style.display = 'none';
+            document.getElementById('chartSection').style.display = 'none';
+            
+            if (currentChart) {
+                currentChart.destroy();
+                currentChart = null;
+            }
+        });
+
+        // 处理文件
+        function handleFile(file) {
+            if (!file.name.toLowerCase().endsWith('.csv')) {
+                alert('请选择CSV格式的文件');
+                return;
+            }
+
+            if (file.size > 10 * 1024 * 1024) {
+                alert('文件大小超过10MB限制');
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const csvText = e.target.result;
+                const data = parseCSV(csvText);
+                processData(data);
+            };
+            reader.readAsText(file, 'UTF-8');
+        }
+
+        // 解析CSV
+        function parseCSV(text) {
+            const lines = text.split('\n');
+            const data = [];
+            
+            for (let line of lines) {
+                if (line.trim()) {
+                    const row = line.split(',').map(cell => cell.trim().replace(/^"|"$/g, ''));
+                    data.push(row);
+                }
+            }
+            
+            return data;
+        }
+
+        // 处理数据
+        function processData(data) {
+            if (data.length === 0) {
+                alert('数据为空');
+                return;
+            }
+
+            csvData = data;
+            filteredData = data.slice();
+            clearDataBtn.disabled = false;
+
+            displayData();
+            generateStats();
+            setupChartControls();
+            
+            document.getElementById('dataPreview').style.display = 'block';
+            document.getElementById('statsSection').style.display = 'block';
+            document.getElementById('chartSection').style.display = 'block';
+        }
+
+        // 显示数据表格
+        function displayData() {
+            const tableHead = document.getElementById('tableHead');
+            const tableBody = document.getElementById('tableBody');
+            
+            tableHead.innerHTML = '';
+            tableBody.innerHTML = '';
+
+            if (filteredData.length === 0) return;
+
+            // 表头
+            const headerRow = document.createElement('tr');
+            filteredData[0].forEach(header => {
+                const th = document.createElement('th');
+                th.textContent = header;
+                headerRow.appendChild(th);
+            });
+            tableHead.appendChild(headerRow);
+
+            // 数据行（最多显示100行）
+            const maxRows = Math.min(filteredData.length, 101);
+            for (let i = 1; i < maxRows; i++) {
+                const tr = document.createElement('tr');
+                filteredData[i].forEach(cell => {
+                    const td = document.createElement('td');
+                    td.textContent = cell;
+                    tr.appendChild(td);
+                });
+                tableBody.appendChild(tr);
+            }
+
+            if (filteredData.length > 101) {
+                const tr = document.createElement('tr');
+                const td = document.createElement('td');
+                td.colSpan = filteredData[0].length;
+                td.textContent = `... 还有 ${filteredData.length - 101} 行数据`;
+                td.style.textAlign = 'center';
+                td.style.fontStyle = 'italic';
+                td.style.color = '#666';
+                tr.appendChild(td);
+                tableBody.appendChild(tr);
+            }
+        }
+
+        // 生成统计信息
+        function generateStats() {
+            const statsGrid = document.getElementById('statsGrid');
+            const filterColumn = document.getElementById('filterColumn');
+            
+            statsGrid.innerHTML = '';
+            filterColumn.innerHTML = '<option value="">请选择列</option>';
+
+            if (filteredData.length < 2) return;
+
+            const headers = filteredData[0];
+            const dataRows = filteredData.slice(1);
+
+            // 基本统计
+            const totalRows = dataRows.length;
+            const totalColumns = headers.length;
+
+            addStatCard(statsGrid, totalRows, '总行数');
+            addStatCard(statsGrid, totalColumns, '总列数');
+
+            // 分析每列数据
+            headers.forEach((header, index) => {
+                const option = document.createElement('option');
+                option.value = index;
+                option.textContent = header;
+                filterColumn.appendChild(option);
+
+                const columnData = dataRows.map(row => row[index]).filter(val => val !== '');
+                
+                if (columnData.length === 0) return;
+
+                // 检查是否为数值列
+                const numericData = columnData.map(val => parseFloat(val)).filter(val => !isNaN(val));
+                
+                if (numericData.length > columnData.length * 0.8) {
+                    // 数值列统计
+                    const sum = numericData.reduce((a, b) => a + b, 0);
+                    const avg = sum / numericData.length;
+                    const max = Math.max(...numericData);
+                    const min = Math.min(...numericData);
+
+                    addStatCard(statsGrid, avg.toFixed(2), `${header} 平均值`);
+                    addStatCard(statsGrid, max, `${header} 最大值`);
+                    addStatCard(statsGrid, min, `${header} 最小值`);
+                } else {
+                    // 文本列统计
+                    const uniqueValues = new Set(columnData);
+                    addStatCard(statsGrid, uniqueValues.size, `${header} 唯一值`);
+                }
+            });
+        }
+
+        // 添加统计卡片
+        function addStatCard(container, value, label) {
+            const card = document.createElement('div');
+            card.className = 'stat-card';
+            card.innerHTML = `
+                <div class="stat-value">${value}</div>
+                <div class="stat-label">${label}</div>
+            `;
+            container.appendChild(card);
+        }
+
+        // 设置图表控件
+        function setupChartControls() {
+            const xAxisSelect = document.getElementById('xAxisColumn');
+            const yAxisSelect = document.getElementById('yAxisColumn');
+            
+            xAxisSelect.innerHTML = '<option value="">请选择列</option>';
+            yAxisSelect.innerHTML = '<option value="">请选择列</option>';
+
+            if (filteredData.length === 0) return;
+
+            const headers = filteredData[0];
+            headers.forEach((header, index) => {
+                const xOption = document.createElement('option');
+                xOption.value = index;
+                xOption.textContent = header;
+                xAxisSelect.appendChild(xOption);
+
+                const yOption = document.createElement('option');
+                yOption.value = index;
+                yOption.textContent = header;
+                yAxisSelect.appendChild(yOption);
+            });
+        }
+
+        // 应用筛选
+        function applyFilter() {
+            const columnIndex = document.getElementById('filterColumn').value;
+            const filterValue = document.getElementById('filterValue').value.toLowerCase();
+
+            if (!columnIndex || !filterValue) {
+                alert('请选择列和输入筛选值');
+                return;
+            }
+
+            const headers = csvData[0];
+            filteredData = [headers];
+
+            for (let i = 1; i < csvData.length; i++) {
+                const cellValue = csvData[i][columnIndex].toLowerCase();
+                if (cellValue.includes(filterValue)) {
+                    filteredData.push(csvData[i]);
+                }
+            }
+
+            displayData();
+            generateStats();
+        }
+
+        // 清除筛选
+        function clearFilter() {
+            filteredData = csvData.slice();
+            document.getElementById('filterValue').value = '';
+            displayData();
+            generateStats();
+        }
+
+        // 生成图表
+        function generateChart() {
+            const xAxisIndex = document.getElementById('xAxisColumn').value;
+            const yAxisIndex = document.getElementById('yAxisColumn').value;
+            const chartType = document.getElementById('chartType').value;
+
+            if (!xAxisIndex || !yAxisIndex) {
+                alert('请选择X轴和Y轴列');
+                return;
+            }
+
+            if (filteredData.length < 2) {
+                alert('数据不足，无法生成图表');
+                return;
+            }
+
+            const xHeader = filteredData[0][xAxisIndex];
+            const yHeader = filteredData[0][yAxisIndex];
+            const dataRows = filteredData.slice(1);
+
+            // 准备图表数据
+            let chartData = prepareChartData(dataRows, xAxisIndex, yAxisIndex, chartType);
+
+            // 销毁现有图表
+            if (currentChart) {
+                currentChart.destroy();
+            }
+
+            // 创建新图表
+            const ctx = document.getElementById('dataChart').getContext('2d');
+            const config = {
+                type: chartType,
+                data: chartData,
+                options: {
+                    responsive: true,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: `${yHeader} vs ${xHeader}`
+                        },
+                        legend: {
+                            display: ['pie', 'doughnut'].includes(chartType)
+                        }
+                    },
+                    scales: ['pie', 'doughnut'].includes(chartType) ? {} : {
+                        x: {
+                            title: {
+                                display: true,
+                                text: xHeader
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: yHeader
+                            }
+                        }
+                    }
+                }
+            };
+
+            currentChart = new Chart(ctx, config);
+            
+            document.getElementById('chartContainer').style.display = 'block';
+            document.getElementById('chartTitle').textContent = `${yHeader} vs ${xHeader}`;
+        }
+
+        // 准备图表数据
+        function prepareChartData(dataRows, xIndex, yIndex, chartType) {
+            if (['pie', 'doughnut'].includes(chartType)) {
+                // 饼图/环形图：统计X轴数据的频次
+                const counts = {};
+                dataRows.forEach(row => {
+                    const key = row[xIndex];
+                    counts[key] = (counts[key] || 0) + 1;
+                });
+
+                return {
+                    labels: Object.keys(counts),
+                    datasets: [{
+                        data: Object.values(counts),
+                        backgroundColor: [
+                            '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0',
+                            '#9966FF', '#FF9F40', '#FF6384', '#C9CBCF'
+                        ]
+                    }]
+                };
+            } else {
+                // 其他图表类型
+                const labels = dataRows.map(row => row[xIndex]);
+                const data = dataRows.map(row => {
+                    const value = parseFloat(row[yIndex]);
+                    return isNaN(value) ? 0 : value;
+                });
+
+                return {
+                    labels: labels,
+                    datasets: [{
+                        label: filteredData[0][yIndex],
+                        data: data,
+                        backgroundColor: '#667eea',
+                        borderColor: '#667eea',
+                        borderWidth: 2,
+                        fill: false
+                    }]
+                };
+            }
+        }
+
+        // 导出数据
+        function exportData(format) {
+            if (filteredData.length === 0) {
+                alert('没有数据可导出');
+                return;
+            }
+
+            let content, filename, mimeType;
+
+            switch (format) {
+                case 'json':
+                    const jsonData = convertToJSON(filteredData);
+                    content = JSON.stringify(jsonData, null, 2);
+                    filename = 'data.json';
+                    mimeType = 'application/json';
+                    break;
+                
+                case 'csv':
+                    content = convertToCSV(filteredData);
+                    filename = 'data.csv';
+                    mimeType = 'text/csv';
+                    break;
+                
+                case 'excel':
+                    content = convertToCSV(filteredData); // 简化处理，实际可以使用专门的Excel库
+                    filename = 'data.xlsx';
+                    mimeType = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+                    break;
+                
+                default:
+                    return;
+            }
+
+            downloadFile(content, filename, mimeType);
+        }
+
+        // 转换为JSON格式
+        function convertToJSON(data) {
+            if (data.length < 2) return [];
+            
+            const headers = data[0];
+            const rows = data.slice(1);
+            
+            return rows.map(row => {
+                const obj = {};
+                headers.forEach((header, index) => {
+                    obj[header] = row[index];
+                });
+                return obj;
+            });
+        }
+
+        // 转换为CSV格式
+        function convertToCSV(data) {
+            return data.map(row => 
+                row.map(cell => 
+                    typeof cell === 'string' && (cell.includes(',') || cell.includes('"')) 
+                        ? `"${cell.replace(/"/g, '""')}"` 
+                        : cell
+                ).join(',')
+            ).join('\n');
+        }
+
+        // 下载文件
+        function downloadFile(content, filename, mimeType) {
+            const blob = new Blob([content], { type: mimeType });
+            const url = URL.createObjectURL(blob);
+            
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+    </script>
+</body>
+</html>

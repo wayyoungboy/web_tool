@@ -1,0 +1,807 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>颜色工具 - Web工具集</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            position: relative;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            font-weight: 300;
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .back-btn {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            text-decoration: none;
+            font-size: 0.9em;
+            transition: background 0.3s ease;
+        }
+
+        .back-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        .tools-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .tool-section {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 25px;
+            border: 2px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .tool-section:hover {
+            border-color: #667eea;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .tool-title {
+            font-size: 1.4em;
+            color: #333;
+            margin-bottom: 15px;
+            font-weight: 500;
+        }
+
+        .tool-description {
+            color: #666;
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+
+        .color-picker-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .color-input {
+            width: 60px;
+            height: 60px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        .color-display {
+            width: 100px;
+            height: 60px;
+            border-radius: 8px;
+            border: 2px solid #ddd;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+        }
+
+        .color-values {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .color-value {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .color-label {
+            font-weight: 500;
+            color: #555;
+            font-size: 0.9em;
+        }
+
+        .color-code {
+            padding: 8px 12px;
+            background: white;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            cursor: pointer;
+            transition: border-color 0.3s ease;
+        }
+
+        .color-code:hover {
+            border-color: #667eea;
+        }
+
+        .palette-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .palette-color {
+            height: 80px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .palette-color:hover {
+            transform: scale(1.05);
+        }
+
+        .palette-color-code {
+            position: absolute;
+            bottom: 5px;
+            left: 5px;
+            background: rgba(0,0,0,0.7);
+            color: white;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.7em;
+            font-family: 'Courier New', monospace;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 15px;
+        }
+
+        .action-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: transform 0.3s ease;
+        }
+
+        .action-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .secondary-btn {
+            background: #6c757d;
+        }
+
+        .secondary-btn:hover {
+            background: #5a6268;
+        }
+
+        .gradient-preview {
+            height: 100px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            border: 2px solid #ddd;
+        }
+
+        .slider-group {
+            margin-bottom: 15px;
+        }
+
+        .slider-label {
+            display: block;
+            margin-bottom: 5px;
+            color: #555;
+            font-weight: 500;
+        }
+
+        .color-slider {
+            width: 100%;
+            height: 8px;
+            border-radius: 4px;
+            outline: none;
+            margin-bottom: 10px;
+        }
+
+        .slider-value {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.8em;
+            margin-left: 10px;
+        }
+
+        .harmony-colors {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .harmony-color {
+            text-align: center;
+        }
+
+        .harmony-color-box {
+            height: 60px;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+
+        .harmony-color-box:hover {
+            transform: scale(1.05);
+        }
+
+        .harmony-color-name {
+            font-size: 0.8em;
+            color: #666;
+            margin-bottom: 4px;
+        }
+
+        .harmony-color-code {
+            font-family: 'Courier New', monospace;
+            font-size: 0.7em;
+            color: #333;
+        }
+
+        .footer {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+            font-size: 0.9em;
+            border-top: 1px solid #eee;
+        }
+
+        @media (max-width: 768px) {
+            .content {
+                padding: 20px;
+            }
+            
+            .tools-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            
+            .color-picker-container {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <a href="index.html" class="back-btn">← 返回主页</a>
+            <h1>🎨 颜色工具</h1>
+            <p>颜色选择器、调色板、颜色转换等设计辅助工具</p>
+        </div>
+
+        <div class="content">
+            <div class="tools-grid">
+                <!-- 颜色选择器 -->
+                <div class="tool-section">
+                    <h3 class="tool-title">颜色选择器</h3>
+                    <p class="tool-description">选择颜色并获取各种格式的颜色代码</p>
+                    
+                    <div class="color-picker-container">
+                        <input type="color" id="colorPicker" class="color-input" value="#667eea">
+                        <div class="color-display" id="colorDisplay">#667eea</div>
+                    </div>
+
+                    <div class="color-values">
+                        <div class="color-value">
+                            <span class="color-label">HEX</span>
+                            <input type="text" id="hexValue" class="color-code" readonly>
+                        </div>
+                        <div class="color-value">
+                            <span class="color-label">RGB</span>
+                            <input type="text" id="rgbValue" class="color-code" readonly>
+                        </div>
+                        <div class="color-value">
+                            <span class="color-label">HSL</span>
+                            <input type="text" id="hslValue" class="color-code" readonly>
+                        </div>
+                        <div class="color-value">
+                            <span class="color-label">HSV</span>
+                            <input type="text" id="hsvValue" class="color-code" readonly>
+                        </div>
+                    </div>
+
+                    <div class="button-group">
+                        <button class="action-btn" onclick="randomColor()">随机颜色</button>
+                        <button class="secondary-btn action-btn" onclick="copyColorValue('hex')">复制HEX</button>
+                        <button class="secondary-btn action-btn" onclick="copyColorValue('rgb')">复制RGB</button>
+                    </div>
+                </div>
+
+                <!-- 调色板生成器 -->
+                <div class="tool-section">
+                    <h3 class="tool-title">调色板生成器</h3>
+                    <p class="tool-description">生成美观的调色板方案</p>
+                    
+                    <div class="button-group">
+                        <button class="action-btn" onclick="generatePalette('monochromatic')">单色调色板</button>
+                        <button class="action-btn" onclick="generatePalette('analogous')">类似色调色板</button>
+                        <button class="action-btn" onclick="generatePalette('complementary')">互补色调色板</button>
+                        <button class="action-btn" onclick="generatePalette('triadic')">三色调色板</button>
+                        <button class="action-btn" onclick="generatePalette('random')">随机调色板</button>
+                    </div>
+
+                    <div class="palette-grid" id="paletteGrid"></div>
+
+                    <div class="button-group">
+                        <button class="secondary-btn action-btn" onclick="exportPalette()">导出调色板</button>
+                    </div>
+                </div>
+
+                <!-- 渐变生成器 -->
+                <div class="tool-section">
+                    <h3 class="tool-title">渐变生成器</h3>
+                    <p class="tool-description">创建CSS渐变效果</p>
+                    
+                    <div class="color-picker-container">
+                        <input type="color" id="gradientStart" class="color-input" value="#667eea">
+                        <span>到</span>
+                        <input type="color" id="gradientEnd" class="color-input" value="#764ba2">
+                    </div>
+
+                    <div class="slider-group">
+                        <label class="slider-label">方向角度：<span class="slider-value" id="angleValue">135°</span></label>
+                        <input type="range" id="angleSlider" class="color-slider" min="0" max="360" value="135">
+                    </div>
+
+                    <div class="gradient-preview" id="gradientPreview"></div>
+
+                    <div class="color-value">
+                        <span class="color-label">CSS代码</span>
+                        <input type="text" id="gradientCSS" class="color-code" readonly>
+                    </div>
+
+                    <div class="button-group">
+                        <button class="secondary-btn action-btn" onclick="copyGradientCSS()">复制CSS代码</button>
+                        <button class="action-btn" onclick="randomGradient()">随机渐变</button>
+                    </div>
+                </div>
+
+                <!-- 色彩和谐 -->
+                <div class="tool-section">
+                    <h3 class="tool-title">色彩和谐</h3>
+                    <p class="tool-description">基于选定颜色生成和谐色彩组合</p>
+                    
+                    <div class="color-picker-container">
+                        <input type="color" id="harmonyColor" class="color-input" value="#667eea">
+                        <span>基础颜色</span>
+                    </div>
+
+                    <div class="harmony-colors" id="harmonyColors"></div>
+
+                    <div class="button-group">
+                        <button class="action-btn" onclick="generateHarmony('complementary')">互补色</button>
+                        <button class="action-btn" onclick="generateHarmony('analogous')">类似色</button>
+                        <button class="action-btn" onclick="generateHarmony('triadic')">三元色</button>
+                        <button class="action-btn" onclick="generateHarmony('tetradic')">四元色</button>
+                        <button class="action-btn" onclick="generateHarmony('split')">分割互补色</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>© 2024 Web工具集 - 让工作更简单</p>
+            <p><a href="https://github.com/wayyoungboy/web_tool" target="_blank">GitHub</a></p>
+        </div>
+    </div>
+
+    <script>
+        // 初始化
+        document.getElementById('colorPicker').addEventListener('input', updateColorValues);
+        document.getElementById('gradientStart').addEventListener('input', updateGradient);
+        document.getElementById('gradientEnd').addEventListener('input', updateGradient);
+        document.getElementById('angleSlider').addEventListener('input', updateGradient);
+        document.getElementById('harmonyColor').addEventListener('input', updateHarmony);
+
+        // 更新颜色值
+        function updateColorValues() {
+            const color = document.getElementById('colorPicker').value;
+            const rgb = hexToRgb(color);
+            const hsl = rgbToHsl(rgb.r, rgb.g, rgb.b);
+            const hsv = rgbToHsv(rgb.r, rgb.g, rgb.b);
+
+            document.getElementById('colorDisplay').style.backgroundColor = color;
+            document.getElementById('colorDisplay').textContent = color;
+            document.getElementById('hexValue').value = color;
+            document.getElementById('rgbValue').value = `rgb(${rgb.r}, ${rgb.g}, ${rgb.b})`;
+            document.getElementById('hslValue').value = `hsl(${hsl.h}, ${hsl.s}%, ${hsl.l}%)`;
+            document.getElementById('hsvValue').value = `hsv(${hsv.h}, ${hsv.s}%, ${hsv.v}%)`;
+        }
+
+        // 更新渐变
+        function updateGradient() {
+            const startColor = document.getElementById('gradientStart').value;
+            const endColor = document.getElementById('gradientEnd').value;
+            const angle = document.getElementById('angleSlider').value;
+            
+            document.getElementById('angleValue').textContent = angle + '°';
+            
+            const gradient = `linear-gradient(${angle}deg, ${startColor}, ${endColor})`;
+            document.getElementById('gradientPreview').style.background = gradient;
+            document.getElementById('gradientCSS').value = `background: ${gradient};`;
+        }
+
+        // 更新和谐色彩
+        function updateHarmony() {
+            generateHarmony('complementary');
+        }
+
+        // 随机颜色
+        function randomColor() {
+            const color = '#' + Math.floor(Math.random()*16777215).toString(16).padStart(6, '0');
+            document.getElementById('colorPicker').value = color;
+            updateColorValues();
+        }
+
+        // 随机渐变
+        function randomGradient() {
+            const color1 = '#' + Math.floor(Math.random()*16777215).toString(16).padStart(6, '0');
+            const color2 = '#' + Math.floor(Math.random()*16777215).toString(16).padStart(6, '0');
+            const angle = Math.floor(Math.random() * 360);
+            
+            document.getElementById('gradientStart').value = color1;
+            document.getElementById('gradientEnd').value = color2;
+            document.getElementById('angleSlider').value = angle;
+            updateGradient();
+        }
+
+        // 生成调色板
+        function generatePalette(type) {
+            const baseColor = document.getElementById('colorPicker').value;
+            const colors = [];
+
+            switch (type) {
+                case 'monochromatic':
+                    colors.push(...generateMonochromaticColors(baseColor));
+                    break;
+                case 'analogous':
+                    colors.push(...generateAnalogousColors(baseColor));
+                    break;
+                case 'complementary':
+                    colors.push(...generateComplementaryColors(baseColor));
+                    break;
+                case 'triadic':
+                    colors.push(...generateTriadicColors(baseColor));
+                    break;
+                case 'random':
+                    for (let i = 0; i < 6; i++) {
+                        colors.push('#' + Math.floor(Math.random()*16777215).toString(16).padStart(6, '0'));
+                    }
+                    break;
+            }
+
+            displayPalette(colors);
+        }
+
+        // 显示调色板
+        function displayPalette(colors) {
+            const grid = document.getElementById('paletteGrid');
+            grid.innerHTML = '';
+
+            colors.forEach(color => {
+                const colorDiv = document.createElement('div');
+                colorDiv.className = 'palette-color';
+                colorDiv.style.backgroundColor = color;
+                colorDiv.innerHTML = `<div class="palette-color-code">${color}</div>`;
+                colorDiv.onclick = () => copyToClipboard(color);
+                grid.appendChild(colorDiv);
+            });
+        }
+
+        // 生成和谐色彩
+        function generateHarmony(type) {
+            const baseColor = document.getElementById('harmonyColor').value;
+            const colors = [];
+
+            switch (type) {
+                case 'complementary':
+                    colors.push({ name: '基础色', color: baseColor });
+                    colors.push({ name: '互补色', color: getComplementaryColor(baseColor) });
+                    break;
+                case 'analogous':
+                    colors.push(...getAnalogousColors(baseColor));
+                    break;
+                case 'triadic':
+                    colors.push(...getTriadicColors(baseColor));
+                    break;
+                case 'tetradic':
+                    colors.push(...getTetradicColors(baseColor));
+                    break;
+                case 'split':
+                    colors.push(...getSplitComplementaryColors(baseColor));
+                    break;
+            }
+
+            displayHarmonyColors(colors);
+        }
+
+        // 显示和谐色彩
+        function displayHarmonyColors(colors) {
+            const container = document.getElementById('harmonyColors');
+            container.innerHTML = '';
+
+            colors.forEach(colorInfo => {
+                const colorDiv = document.createElement('div');
+                colorDiv.className = 'harmony-color';
+                colorDiv.innerHTML = `
+                    <div class="harmony-color-box" style="background-color: ${colorInfo.color}" onclick="copyToClipboard('${colorInfo.color}')"></div>
+                    <div class="harmony-color-name">${colorInfo.name}</div>
+                    <div class="harmony-color-code">${colorInfo.color}</div>
+                `;
+                container.appendChild(colorDiv);
+            });
+        }
+
+        // 颜色转换函数
+        function hexToRgb(hex) {
+            const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+            return result ? {
+                r: parseInt(result[1], 16),
+                g: parseInt(result[2], 16),
+                b: parseInt(result[3], 16)
+            } : null;
+        }
+
+        function rgbToHsl(r, g, b) {
+            r /= 255; g /= 255; b /= 255;
+            const max = Math.max(r, g, b), min = Math.min(r, g, b);
+            let h, s, l = (max + min) / 2;
+
+            if (max === min) {
+                h = s = 0;
+            } else {
+                const d = max - min;
+                s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+                switch (max) {
+                    case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+                    case g: h = (b - r) / d + 2; break;
+                    case b: h = (r - g) / d + 4; break;
+                }
+                h /= 6;
+            }
+
+            return {
+                h: Math.round(h * 360),
+                s: Math.round(s * 100),
+                l: Math.round(l * 100)
+            };
+        }
+
+        function rgbToHsv(r, g, b) {
+            r /= 255; g /= 255; b /= 255;
+            const max = Math.max(r, g, b), min = Math.min(r, g, b);
+            let h, s, v = max;
+
+            const d = max - min;
+            s = max === 0 ? 0 : d / max;
+
+            if (max === min) {
+                h = 0;
+            } else {
+                switch (max) {
+                    case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+                    case g: h = (b - r) / d + 2; break;
+                    case b: h = (r - g) / d + 4; break;
+                }
+                h /= 6;
+            }
+
+            return {
+                h: Math.round(h * 360),
+                s: Math.round(s * 100),
+                v: Math.round(v * 100)
+            };
+        }
+
+        function hslToHex(h, s, l) {
+            l /= 100;
+            const a = s * Math.min(l, 1 - l) / 100;
+            const f = n => {
+                const k = (n + h / 30) % 12;
+                const color = l - a * Math.max(Math.min(k - 3, 9 - k, 1), -1);
+                return Math.round(255 * color).toString(16).padStart(2, '0');
+            };
+            return `#${f(0)}${f(8)}${f(4)}`;
+        }
+
+        // 颜色生成函数
+        function generateMonochromaticColors(baseColor) {
+            const hsl = rgbToHsl(...Object.values(hexToRgb(baseColor)));
+            const colors = [];
+            
+            for (let i = 0; i < 6; i++) {
+                const lightness = 20 + (i * 15);
+                colors.push(hslToHex(hsl.h, hsl.s, lightness));
+            }
+            
+            return colors;
+        }
+
+        function generateAnalogousColors(baseColor) {
+            const hsl = rgbToHsl(...Object.values(hexToRgb(baseColor)));
+            const colors = [];
+            
+            for (let i = -2; i <= 3; i++) {
+                const hue = (hsl.h + (i * 30)) % 360;
+                colors.push(hslToHex(hue, hsl.s, hsl.l));
+            }
+            
+            return colors;
+        }
+
+        function generateComplementaryColors(baseColor) {
+            const hsl = rgbToHsl(...Object.values(hexToRgb(baseColor)));
+            const complementaryHue = (hsl.h + 180) % 360;
+            
+            return [
+                baseColor,
+                hslToHex(complementaryHue, hsl.s, hsl.l),
+                hslToHex(hsl.h, hsl.s, Math.max(hsl.l - 20, 10)),
+                hslToHex(complementaryHue, hsl.s, Math.max(hsl.l - 20, 10)),
+                hslToHex(hsl.h, hsl.s, Math.min(hsl.l + 20, 90)),
+                hslToHex(complementaryHue, hsl.s, Math.min(hsl.l + 20, 90))
+            ];
+        }
+
+        function generateTriadicColors(baseColor) {
+            const hsl = rgbToHsl(...Object.values(hexToRgb(baseColor)));
+            
+            return [
+                baseColor,
+                hslToHex((hsl.h + 120) % 360, hsl.s, hsl.l),
+                hslToHex((hsl.h + 240) % 360, hsl.s, hsl.l),
+                hslToHex(hsl.h, hsl.s, Math.max(hsl.l - 20, 10)),
+                hslToHex((hsl.h + 120) % 360, hsl.s, Math.max(hsl.l - 20, 10)),
+                hslToHex((hsl.h + 240) % 360, hsl.s, Math.max(hsl.l - 20, 10))
+            ];
+        }
+
+        function getComplementaryColor(color) {
+            const hsl = rgbToHsl(...Object.values(hexToRgb(color)));
+            return hslToHex((hsl.h + 180) % 360, hsl.s, hsl.l);
+        }
+
+        function getAnalogousColors(color) {
+            const hsl = rgbToHsl(...Object.values(hexToRgb(color)));
+            return [
+                { name: '类似色1', color: hslToHex((hsl.h - 30) % 360, hsl.s, hsl.l) },
+                { name: '基础色', color: color },
+                { name: '类似色2', color: hslToHex((hsl.h + 30) % 360, hsl.s, hsl.l) }
+            ];
+        }
+
+        function getTriadicColors(color) {
+            const hsl = rgbToHsl(...Object.values(hexToRgb(color)));
+            return [
+                { name: '基础色', color: color },
+                { name: '三元色1', color: hslToHex((hsl.h + 120) % 360, hsl.s, hsl.l) },
+                { name: '三元色2', color: hslToHex((hsl.h + 240) % 360, hsl.s, hsl.l) }
+            ];
+        }
+
+        function getTetradicColors(color) {
+            const hsl = rgbToHsl(...Object.values(hexToRgb(color)));
+            return [
+                { name: '基础色', color: color },
+                { name: '四元色1', color: hslToHex((hsl.h + 90) % 360, hsl.s, hsl.l) },
+                { name: '互补色', color: hslToHex((hsl.h + 180) % 360, hsl.s, hsl.l) },
+                { name: '四元色2', color: hslToHex((hsl.h + 270) % 360, hsl.s, hsl.l) }
+            ];
+        }
+
+        function getSplitComplementaryColors(color) {
+            const hsl = rgbToHsl(...Object.values(hexToRgb(color)));
+            return [
+                { name: '基础色', color: color },
+                { name: '分割色1', color: hslToHex((hsl.h + 150) % 360, hsl.s, hsl.l) },
+                { name: '分割色2', color: hslToHex((hsl.h + 210) % 360, hsl.s, hsl.l) }
+            ];
+        }
+
+        // 复制功能
+        function copyColorValue(type) {
+            let value;
+            switch (type) {
+                case 'hex':
+                    value = document.getElementById('hexValue').value;
+                    break;
+                case 'rgb':
+                    value = document.getElementById('rgbValue').value;
+                    break;
+            }
+            copyToClipboard(value);
+        }
+
+        function copyGradientCSS() {
+            const value = document.getElementById('gradientCSS').value;
+            copyToClipboard(value);
+        }
+
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                // 简单的反馈
+                const originalTitle = document.title;
+                document.title = '已复制!';
+                setTimeout(() => {
+                    document.title = originalTitle;
+                }, 1000);
+            });
+        }
+
+        function exportPalette() {
+            const colors = Array.from(document.querySelectorAll('.palette-color')).map(el => 
+                el.style.backgroundColor
+            );
+            const paletteData = colors.join('\n');
+            copyToClipboard(paletteData);
+        }
+
+        // 初始化
+        updateColorValues();
+        updateGradient();
+        updateHarmony();
+    </script>
+</body>
+</html>
