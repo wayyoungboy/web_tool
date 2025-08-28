@@ -28,6 +28,7 @@ deploy by cursor
 - **颜色工具** (`color_tools.html`) - 颜色选择器、调色板、颜色转换等设计辅助工具
 - **开发工具** (`dev_tools.html`) - JSON格式化、Base64转换、URL编码等开发者常用工具
 - **数据分析工具** (`data_tools.html`) - CSV处理、数据可视化、统计分析等数据处理工具
+- **视频音频分离工具** (`video_audio_extract.html`) - 从视频文件中提取音频或视频部分，支持多种格式转换
 
 ## 📁 文件结构
 
@@ -40,6 +41,7 @@ web_tool/
 ├── color_tools.html    # 颜色工具
 ├── dev_tools.html      # 开发工具
 ├── data_tools.html     # 数据分析工具
+├── video_audio_extract.html # 视频音频分离工具
 ├── LICENSE            # MIT许可证文件
 └── README.md          # 项目说明文档
 ```
