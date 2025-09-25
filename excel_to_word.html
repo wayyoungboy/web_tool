@@ -1,0 +1,834 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Excel转Word工具 - Web工具集</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/docx@7.1.0/build/index.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            position: relative;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            font-weight: 300;
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .back-btn {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            text-decoration: none;
+            font-size: 0.9em;
+            transition: background 0.3s ease;
+        }
+
+        .back-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        .tool-section {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 30px;
+            border: 2px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .tool-section:hover {
+            border-color: #667eea;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .tool-title {
+            font-size: 1.4em;
+            color: #333;
+            margin-bottom: 15px;
+            font-weight: 500;
+        }
+
+        .tool-description {
+            color: #666;
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+
+        .upload-area {
+            border: 3px dashed #ddd;
+            border-radius: 10px;
+            padding: 30px;
+            text-align: center;
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .upload-area:hover {
+            border-color: #667eea;
+            background-color: #f8f9ff;
+        }
+
+        .upload-area.dragover {
+            border-color: #667eea;
+            background-color: #f0f4ff;
+        }
+
+        .upload-icon {
+            font-size: 2em;
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        .upload-text {
+            color: #666;
+            margin-bottom: 10px;
+        }
+
+        .upload-hint {
+            color: #999;
+            font-size: 0.9em;
+        }
+
+        #fileInput {
+            display: none;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 15px;
+        }
+
+        .action-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: transform 0.3s ease;
+        }
+
+        .action-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .action-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .secondary-btn {
+            background: #6c757d;
+        }
+
+        .secondary-btn:hover {
+            background: #5a6268;
+        }
+
+        .preview-section {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .preview-title {
+            font-size: 1.2em;
+            color: #333;
+            margin-bottom: 15px;
+            font-weight: 500;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+            font-size: 0.9em;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .data-table th,
+        .data-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .data-table th {
+            background: #667eea;
+            color: white;
+            font-weight: 500;
+        }
+
+        .data-table tr:hover {
+            background: #f8f9fa;
+        }
+
+        .table-container {
+            max-height: 400px;
+            overflow-y: auto;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .options-section {
+            background: #e3f2fd;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .options-title {
+            font-weight: 500;
+            color: #1565c0;
+            margin-bottom: 15px;
+        }
+
+        .option-group {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .option-label {
+            font-weight: 500;
+            color: #333;
+        }
+
+        .option-input {
+            padding: 8px 12px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            font-size: 0.9em;
+        }
+
+        .option-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background: #f0f0f0;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 10px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .progress-text {
+            text-align: center;
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .footer {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+            font-size: 0.9em;
+            border-top: 1px solid #eee;
+        }
+
+        @media (max-width: 768px) {
+            .content {
+                padding: 20px;
+            }
+            
+            .option-group {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <a href="index.html" class="back-btn">← 返回主页</a>
+            <h1>📊 Excel转Word工具</h1>
+            <p>将Excel表格转换为Word文档，支持多种格式和样式</p>
+        </div>
+
+        <div class="content">
+            <!-- 文件上传区域 -->
+            <div class="tool-section">
+                <h3 class="tool-title">Excel文件上传</h3>
+                <p class="tool-description">上传Excel文件，支持.xlsx和.xls格式</p>
+                
+                <div class="upload-area" id="uploadArea">
+                    <div class="upload-icon">📊</div>
+                    <div class="upload-text">点击选择Excel文件或拖拽文件到此处</div>
+                    <div class="upload-hint">支持.xlsx和.xls格式文件，文件大小限制10MB</div>
+                    <input type="file" id="fileInput" accept=".xlsx,.xls">
+                </div>
+
+                <div class="button-group">
+                    <button class="action-btn" id="loadSampleData">加载示例数据</button>
+                    <button class="secondary-btn action-btn" id="clearData" disabled>清空数据</button>
+                </div>
+            </div>
+
+            <!-- 数据预览 -->
+            <div class="tool-section" id="dataPreview" style="display: none;">
+                <h3 class="tool-title">数据预览</h3>
+                <p class="tool-description">查看Excel文件内容，确认转换设置</p>
+                
+                <div class="preview-section">
+                    <div class="preview-title">表格预览</div>
+                    <div class="table-container">
+                        <table class="data-table" id="dataTable">
+                            <thead id="tableHead"></thead>
+                            <tbody id="tableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 转换选项 -->
+            <div class="tool-section" id="optionsSection" style="display: none;">
+                <h3 class="tool-title">转换选项</h3>
+                <p class="tool-description">配置Word文档的格式和样式</p>
+                
+                <div class="options-section">
+                    <div class="options-title">文档设置</div>
+                    
+                    <div class="option-group">
+                        <label class="option-label">文档标题：</label>
+                        <input type="text" id="docTitle" class="option-input" placeholder="请输入文档标题" value="数据报告">
+                    </div>
+
+                    <div class="option-group">
+                        <label class="option-label">包含表头：</label>
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="includeHeader" checked>
+                            <label for="includeHeader">是</label>
+                        </div>
+                    </div>
+
+                    <div class="option-group">
+                        <label class="option-label">表格样式：</label>
+                        <select id="tableStyle" class="option-input">
+                            <option value="simple">简单样式</option>
+                            <option value="grid">网格样式</option>
+                            <option value="colorful">彩色样式</option>
+                        </select>
+                    </div>
+
+                    <div class="option-group">
+                        <label class="option-label">最大行数：</label>
+                        <input type="number" id="maxRows" class="option-input" value="100" min="1" max="1000">
+                    </div>
+                </div>
+
+                <div class="button-group">
+                    <button class="action-btn" id="convertBtn">转换为Word文档</button>
+                    <button class="secondary-btn action-btn" id="previewBtn">预览Word内容</button>
+                </div>
+            </div>
+
+            <!-- 转换进度 -->
+            <div class="tool-section" id="progressSection" style="display: none;">
+                <h3 class="tool-title">转换进度</h3>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+                <div class="progress-text" id="progressText">准备转换...</div>
+            </div>
+
+            <!-- 结果展示 -->
+            <div class="tool-section" id="resultSection" style="display: none;">
+                <h3 class="tool-title">转换结果</h3>
+                <p class="tool-description">Word文档已生成，可以下载或预览</p>
+                
+                <div class="button-group">
+                    <button class="action-btn" id="downloadBtn">下载Word文档</button>
+                    <button class="secondary-btn action-btn" id="newConvertBtn">转换新文件</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>© 2024 Web工具集 - 让工作更简单</p>
+            <p><a href="https://github.com/wayyoungboy/web_tool" target="_blank">GitHub</a></p>
+        </div>
+    </div>
+
+    <script>
+        let excelData = [];
+        let currentWorkbook = null;
+        let wordContent = '';
+
+        // 检查库是否加载完成
+        window.addEventListener('load', function() {
+            console.log('页面加载完成');
+            console.log('XLSX库:', typeof XLSX !== 'undefined' ? '已加载' : '未加载');
+            console.log('docx库:', typeof docx !== 'undefined' ? '已加载' : '未加载');
+            
+            if (typeof docx === 'undefined') {
+                console.error('docx库未正确加载');
+                // 尝试重新加载
+                const script = document.createElement('script');
+                script.src = 'https://cdn.jsdelivr.net/npm/docx@7.1.0/build/index.js';
+                script.onload = function() {
+                    console.log('docx库重新加载成功');
+                };
+                script.onerror = function() {
+                    console.error('docx库加载失败');
+                };
+                document.head.appendChild(script);
+            }
+        });
+
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        const loadSampleBtn = document.getElementById('loadSampleData');
+        const clearDataBtn = document.getElementById('clearData');
+        const convertBtn = document.getElementById('convertBtn');
+        const previewBtn = document.getElementById('previewBtn');
+        const downloadBtn = document.getElementById('downloadBtn');
+        const newConvertBtn = document.getElementById('newConvertBtn');
+
+        // 文件上传事件
+        uploadArea.addEventListener('click', () => fileInput.click());
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                handleFile(files[0]);
+            }
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                handleFile(e.target.files[0]);
+            }
+        });
+
+        // 加载示例数据
+        loadSampleBtn.addEventListener('click', () => {
+            const sampleData = [
+                ['姓名', '年龄', '城市', '薪资', '部门'],
+                ['张三', '28', '北京', '15000', '技术部'],
+                ['李四', '32', '上海', '18000', '销售部'],
+                ['王五', '25', '广州', '12000', '技术部'],
+                ['赵六', '35', '深圳', '22000', '管理部'],
+                ['钱七', '29', '杭州', '16000', '技术部'],
+                ['孙八', '31', '成都', '14000', '销售部'],
+                ['周九', '27', '武汉', '13000', '技术部'],
+                ['吴十', '33', '西安', '17000', '销售部']
+            ];
+            
+            processData(sampleData);
+        });
+
+        // 清空数据
+        clearDataBtn.addEventListener('click', () => {
+            excelData = [];
+            currentWorkbook = null;
+            clearDataBtn.disabled = true;
+            
+            document.getElementById('dataPreview').style.display = 'none';
+            document.getElementById('optionsSection').style.display = 'none';
+            document.getElementById('progressSection').style.display = 'none';
+            document.getElementById('resultSection').style.display = 'none';
+        });
+
+        // 转换按钮
+        convertBtn.addEventListener('click', () => {
+            convertToWord();
+        });
+
+        // 预览按钮
+        previewBtn.addEventListener('click', () => {
+            previewWordContent();
+        });
+
+        // 下载按钮
+        downloadBtn.addEventListener('click', () => {
+            downloadWordDocument();
+        });
+
+        // 新转换按钮
+        newConvertBtn.addEventListener('click', () => {
+            document.getElementById('resultSection').style.display = 'none';
+            document.getElementById('optionsSection').style.display = 'block';
+        });
+
+        // 处理文件
+        function handleFile(file) {
+            const validExtensions = ['.xlsx', '.xls'];
+            const fileExtension = file.name.toLowerCase().substring(file.name.lastIndexOf('.'));
+            
+            if (!validExtensions.includes(fileExtension)) {
+                alert('请选择Excel格式的文件（.xlsx或.xls）');
+                return;
+            }
+
+            if (file.size > 10 * 1024 * 1024) {
+                alert('文件大小超过10MB限制');
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    currentWorkbook = workbook;
+                    
+                    // 获取第一个工作表
+                    const sheetName = workbook.SheetNames[0];
+                    const worksheet = workbook.Sheets[sheetName];
+                    const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+                    
+                    processData(jsonData);
+                } catch (error) {
+                    alert('文件解析失败：' + error.message);
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        // 处理数据
+        function processData(data) {
+            if (data.length === 0) {
+                alert('数据为空');
+                return;
+            }
+
+            excelData = data;
+            clearDataBtn.disabled = false;
+
+            displayData();
+            
+            document.getElementById('dataPreview').style.display = 'block';
+            document.getElementById('optionsSection').style.display = 'block';
+        }
+
+        // 显示数据表格
+        function displayData() {
+            const tableHead = document.getElementById('tableHead');
+            const tableBody = document.getElementById('tableBody');
+            
+            tableHead.innerHTML = '';
+            tableBody.innerHTML = '';
+
+            if (excelData.length === 0) return;
+
+            // 表头
+            const headerRow = document.createElement('tr');
+            excelData[0].forEach(header => {
+                const th = document.createElement('th');
+                th.textContent = header || '';
+                headerRow.appendChild(th);
+            });
+            tableHead.appendChild(headerRow);
+
+            // 数据行（最多显示50行）
+            const maxRows = Math.min(excelData.length, 51);
+            for (let i = 1; i < maxRows; i++) {
+                const tr = document.createElement('tr');
+                excelData[i].forEach(cell => {
+                    const td = document.createElement('td');
+                    td.textContent = cell || '';
+                    tr.appendChild(td);
+                });
+                tableBody.appendChild(tr);
+            }
+
+            if (excelData.length > 51) {
+                const tr = document.createElement('tr');
+                const td = document.createElement('td');
+                td.colSpan = excelData[0].length;
+                td.textContent = `... 还有 ${excelData.length - 51} 行数据`;
+                td.style.textAlign = 'center';
+                td.style.fontStyle = 'italic';
+                td.style.color = '#666';
+                tr.appendChild(td);
+                tableBody.appendChild(tr);
+            }
+        }
+
+        // 转换为Word文档
+        function convertToWord() {
+            const docTitle = document.getElementById('docTitle').value || '数据报告';
+            const includeHeader = document.getElementById('includeHeader').checked;
+            const tableStyle = document.getElementById('tableStyle').value;
+            const maxRows = parseInt(document.getElementById('maxRows').value) || 100;
+
+            // 检查docx库是否加载
+            if (typeof docx === 'undefined') {
+                alert('Word文档生成库未加载，请刷新页面重试');
+                return;
+            }
+
+            // 显示进度
+            document.getElementById('progressSection').style.display = 'block';
+            document.getElementById('resultSection').style.display = 'none';
+            
+            updateProgress(10, '开始转换...');
+
+            setTimeout(() => {
+                updateProgress(30, '处理数据...');
+                
+                setTimeout(() => {
+                    updateProgress(60, '生成Word文档...');
+                    
+                    setTimeout(() => {
+                        try {
+                            wordContent = generateWordContent(docTitle, includeHeader, tableStyle, maxRows);
+                            updateProgress(100, '转换完成！');
+                            
+                            setTimeout(() => {
+                                document.getElementById('progressSection').style.display = 'none';
+                                document.getElementById('resultSection').style.display = 'block';
+                            }, 500);
+                        } catch (error) {
+                            console.error('生成Word文档时出错:', error);
+                            alert('生成Word文档失败: ' + error.message);
+                            document.getElementById('progressSection').style.display = 'none';
+                        }
+                    }, 1000);
+                }, 1000);
+            }, 500);
+        }
+
+        // 更新进度
+        function updateProgress(percent, text) {
+            document.getElementById('progressFill').style.width = percent + '%';
+            document.getElementById('progressText').textContent = text;
+        }
+
+        // 生成Word内容
+        function generateWordContent(title, includeHeader, tableStyle, maxRows) {
+            const { Document, Packer, Paragraph, Table, TableRow, TableCell, TextRun, AlignmentType, BorderStyle, WidthType } = docx;
+            
+            // 准备数据
+            const dataRows = includeHeader ? excelData.slice(1) : excelData;
+            const rowsToProcess = Math.min(dataRows.length, maxRows);
+            
+            // 创建文档段落
+            const children = [];
+            
+            // 添加标题
+            children.push(new Paragraph({
+                children: [new TextRun({
+                    text: title,
+                    bold: true,
+                    size: 32
+                })],
+                alignment: AlignmentType.CENTER,
+                spacing: { after: 400 }
+            }));
+            
+            // 添加生成时间
+            const now = new Date();
+            children.push(new Paragraph({
+                children: [new TextRun({
+                    text: `生成时间：${now.toLocaleString()}`,
+                    size: 20,
+                    color: "666666"
+                })],
+                alignment: AlignmentType.CENTER,
+                spacing: { after: 400 }
+            }));
+            
+            // 创建表格
+            const tableRows = [];
+            
+            // 表头
+            if (includeHeader && excelData.length > 0) {
+                const headerCells = excelData[0].map(header => 
+                    new TableCell({
+                        children: [new Paragraph({
+                            children: [new TextRun({
+                                text: header || '',
+                                bold: true
+                            })]
+                        })],
+                        shading: {
+                            fill: tableStyle === 'colorful' ? "667eea" : "f8f9fa"
+                        }
+                    })
+                );
+                tableRows.push(new TableRow({ children: headerCells }));
+            }
+            
+            // 数据行
+            for (let i = 0; i < rowsToProcess; i++) {
+                const cells = dataRows[i].map(cell => 
+                    new TableCell({
+                        children: [new Paragraph({
+                            children: [new TextRun({
+                                text: cell || ''
+                            })]
+                        })]
+                    })
+                );
+                tableRows.push(new TableRow({ children: cells }));
+            }
+            
+            // 创建表格
+            const table = new Table({
+                rows: tableRows,
+                width: {
+                    size: 100,
+                    type: WidthType.PERCENTAGE
+                },
+                borders: {
+                    top: { style: BorderStyle.SINGLE, size: 1, color: "dddddd" },
+                    bottom: { style: BorderStyle.SINGLE, size: 1, color: "dddddd" },
+                    left: { style: BorderStyle.SINGLE, size: 1, color: "dddddd" },
+                    right: { style: BorderStyle.SINGLE, size: 1, color: "dddddd" },
+                    insideHorizontal: { style: BorderStyle.SINGLE, size: 1, color: "dddddd" },
+                    insideVertical: { style: BorderStyle.SINGLE, size: 1, color: "dddddd" }
+                }
+            });
+            
+            children.push(table);
+            
+            // 如果数据被截断，添加说明
+            if (dataRows.length > maxRows) {
+                children.push(new Paragraph({
+                    children: [new TextRun({
+                        text: `注：仅显示前${maxRows}行数据，共${dataRows.length}行`,
+                        italics: true,
+                        color: "666666"
+                    })],
+                    alignment: AlignmentType.CENTER,
+                    spacing: { before: 400 }
+                }));
+            }
+            
+            // 创建文档
+            const doc = new Document({
+                sections: [{
+                    children: children
+                }]
+            });
+            
+            return doc;
+        }
+
+        // 预览Word内容
+        function previewWordContent() {
+            if (!wordContent) {
+                alert('请先转换文档');
+                return;
+            }
+            
+            // 由于docx库生成的文档无法直接在浏览器中预览，
+            // 我们提供一个提示信息
+            alert('Word文档预览功能暂不支持，请直接下载文档查看。');
+        }
+
+        // 下载Word文档
+        async function downloadWordDocument() {
+            if (!wordContent) {
+                alert('请先转换文档');
+                return;
+            }
+            
+            try {
+                // 使用docx库的Packer生成Word文档
+                const { Packer } = docx;
+                
+                // 使用浏览器兼容的方法
+                const blob = await Packer.toBlob(wordContent);
+                
+                // 直接下载Blob
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `${document.getElementById('docTitle').value || '数据报告'}.docx`;
+                document.body.appendChild(a);
+                a.click();
+                
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            } catch (error) {
+                console.error('生成Word文档失败:', error);
+                alert('生成Word文档失败，请重试');
+            }
+        }
+    </script>
+</body>
+</html>
