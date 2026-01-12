@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF页面编辑工具 - 删除与排序</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            min-height: 80vh;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            font-weight: 300;
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 40px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .upload-area {
+            border: 3px dashed #ddd;
+            border-radius: 15px;
+            padding: 40px;
+            text-align: center;
+            margin-bottom: 30px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .upload-area:hover {
+            border-color: #667eea;
+            background-color: #f8f9ff;
+        }
+
+        .upload-area.dragover {
+            border-color: #667eea;
+            background-color: #f0f4ff;
+        }
+
+        .upload-icon {
+            font-size: 3em;
+            color: #667eea;
+            margin-bottom: 20px;
+        }
+
+        .editor-container {
+            display: none;
+            flex: 1;
+            flex-direction: column;
+        }
+
+        .toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .file-info {
+            font-size: 1.1em;
+            color: #333;
+        }
+
+        .action-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 10px 25px;
+            border-radius: 8px;
+            font-size: 1em;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .action-btn:hover {
+            background: #764ba2;
+        }
+
+        .action-btn.secondary {
+            background: #f8f9fa;
+            color: #333;
+            border: 1px solid #ddd;
+            margin-right: 10px;
+        }
+
+        .action-btn.secondary:hover {
+            background: #e9ecef;
+        }
+
+        .pages-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 20px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .page-card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            padding: 10px;
+            position: relative;
+            cursor: grab;
+            transition: transform 0.2s, box-shadow 0.2s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .page-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.15);
+        }
+
+        .page-card.sortable-ghost {
+            opacity: 0.4;
+            background: #e9ecef;
+        }
+
+        .page-preview {
+            width: 100%;
+            height: auto;
+            border: 1px solid #eee;
+            margin-bottom: 10px;
+            pointer-events: none; /* 防止拖拽时选中图片 */
+        }
+
+        .page-number {
+            font-size: 0.9em;
+            color: #666;
+        }
+
+        .delete-btn {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background: #ff4757;
+            color: white;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            border: none;
+            font-size: 14px;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .page-card:hover .delete-btn {
+            opacity: 1;
+        }
+
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            flex-direction: column;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 15px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        #fileInput {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>PDF页面编辑</h1>
+            <p>拖拽调整页面顺序，点击删除不需要的页面</p>
+        </div>
+
+        <div class="content">
+            <div id="uploadArea" class="upload-area">
+                <div class="upload-icon">📄</div>
+                <div class="upload-text">点击或拖拽PDF文件到这里</div>
+                <div class="upload-hint">支持 .pdf 格式文件</div>
+                <input type="file" id="fileInput" accept=".pdf">
+            </div>
+
+            <div id="editorContainer" class="editor-container">
+                <div class="toolbar">
+                    <div class="file-info" id="fileInfo">文件名.pdf (共 0 页)</div>
+                    <div>
+                        <button class="action-btn secondary" onclick="resetEditor()">重新上传</button>
+                        <button class="action-btn" onclick="savePDF()">保存 PDF</button>
+                    </div>
+                </div>
+                <div id="pagesGrid" class="pages-grid">
+                    <!-- 页面缩略图将在这里生成 -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="loadingOverlay" class="loading-overlay">
+        <div class="spinner"></div>
+        <div id="loadingText">处理中...</div>
+    </div>
+
+    <script>
+        // 配置 pdf.js worker
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+        let currentPdfBytes = null;
+        let currentFileName = '';
+        let originalPageCount = 0;
+        let sortableInstance = null;
+
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        const editorContainer = document.getElementById('editorContainer');
+        const pagesGrid = document.getElementById('pagesGrid');
+        const loadingOverlay = document.getElementById('loadingOverlay');
+        const loadingText = document.getElementById('loadingText');
+        const fileInfo = document.getElementById('fileInfo');
+
+        // 上传区域事件处理
+        uploadArea.addEventListener('click', () => fileInput.click());
+        
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length > 0 && files[0].type === 'application/pdf') {
+                handleFile(files[0]);
+            } else {
+                alert('请上传PDF文件');
+            }
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                handleFile(e.target.files[0]);
+            }
+        });
+
+        async function handleFile(file) {
+            showLoading('正在加载PDF...');
+            currentFileName = file.name;
+            
+            try {
+                const arrayBuffer = await file.arrayBuffer();
+                // 复制一份 ArrayBuffer 用于后续保存，防止 pdf.js 转移所有权导致 detached
+                currentPdfBytes = arrayBuffer.slice(0);
+                
+                // 加载 PDF 文档 (使用原始 buffer，它可能会被 worker 转移)
+                const loadingTask = pdfjsLib.getDocument(arrayBuffer);
+                const pdf = await loadingTask.promise;
+                originalPageCount = pdf.numPages;
+
+                fileInfo.textContent = `${currentFileName} (共 ${originalPageCount} 页)`;
+                
+                // 渲染所有页面
+                pagesGrid.innerHTML = '';
+                for (let i = 1; i <= pdf.numPages; i++) {
+                    await renderPageThumbnail(pdf, i);
+                }
+
+                // 初始化拖拽排序
+                if (sortableInstance) {
+                    sortableInstance.destroy();
+                }
+                sortableInstance = new Sortable(pagesGrid, {
+                    animation: 150,
+                    ghostClass: 'sortable-ghost',
+                    onEnd: updatePageNumbers // 可以在这里更新页码显示，目前不做强制重排页码数字
+                });
+
+                // 切换显示
+                uploadArea.style.display = 'none';
+                editorContainer.style.display = 'flex';
+                
+            } catch (error) {
+                console.error(error);
+                alert('加载PDF失败: ' + error.message);
+            } finally {
+                hideLoading();
+            }
+        }
+
+        async function renderPageThumbnail(pdf, pageNum) {
+            const page = await pdf.getPage(pageNum);
+            const viewport = page.getViewport({ scale: 0.5 }); // 缩略图比例
+
+            const pageCard = document.createElement('div');
+            pageCard.className = 'page-card';
+            pageCard.dataset.originalIndex = pageNum - 1; // 保存原始索引 (0-based)
+
+            const canvas = document.createElement('canvas');
+            canvas.className = 'page-preview';
+            const context = canvas.getContext('2d');
+            canvas.height = viewport.height;
+            canvas.width = viewport.width;
+            
+            // 设置固定宽度以适应网格，高度自动
+            canvas.style.width = '100%';
+            canvas.style.height = 'auto';
+
+            const renderContext = {
+                canvasContext: context,
+                viewport: viewport
+            };
+
+            await page.render(renderContext).promise;
+
+            const pageNumSpan = document.createElement('span');
+            pageNumSpan.className = 'page-number';
+            pageNumSpan.textContent = `第 ${pageNum} 页`;
+
+            const deleteBtn = document.createElement('button');
+            deleteBtn.className = 'delete-btn';
+            deleteBtn.innerHTML = '×';
+            deleteBtn.onclick = (e) => {
+                e.stopPropagation(); // 防止触发卡片点击（如果有的话）
+                if (pagesGrid.children.length <= 1) {
+                    alert('至少保留一页');
+                    return;
+                }
+                pageCard.remove();
+                updateFileInfo();
+            };
+
+            pageCard.appendChild(deleteBtn);
+            pageCard.appendChild(canvas);
+            pageCard.appendChild(pageNumSpan);
+            pagesGrid.appendChild(pageCard);
+        }
+
+        function updateFileInfo() {
+            const currentCount = pagesGrid.children.length;
+            fileInfo.textContent = `${currentFileName} (当前 ${currentCount} 页 / 原始 ${originalPageCount} 页)`;
+        }
+
+        function updatePageNumbers() {
+            // 如果需要更新显示的页码，可以在这里实现
+            // 目前保持显示原始页码，方便用户知道是哪一页
+        }
+
+        function resetEditor() {
+            currentPdfBytes = null;
+            currentFileName = '';
+            fileInput.value = '';
+            pagesGrid.innerHTML = '';
+            editorContainer.style.display = 'none';
+            uploadArea.style.display = 'block';
+        }
+
+        async function savePDF() {
+            if (!currentPdfBytes) return;
+
+            showLoading('正在生成PDF...');
+            try {
+                // 加载原始 PDF
+                const pdfDoc = await PDFLib.PDFDocument.load(currentPdfBytes);
+                
+                // 创建新 PDF
+                const newPdfDoc = await PDFLib.PDFDocument.create();
+
+                // 获取当前 DOM 中的页面顺序
+                const pageCards = Array.from(pagesGrid.children);
+                const pageIndices = pageCards.map(card => parseInt(card.dataset.originalIndex));
+
+                // 复制页面到新文档
+                const copiedPages = await newPdfDoc.copyPages(pdfDoc, pageIndices);
+                
+                copiedPages.forEach(page => {
+                    newPdfDoc.addPage(page);
+                });
+
+                // 保存并下载
+                const pdfBytes = await newPdfDoc.save();
+                const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+                
+                const newFileName = currentFileName.replace('.pdf', '_edited.pdf');
+                saveAs(blob, newFileName);
+
+            } catch (error) {
+                console.error(error);
+                alert('保存PDF失败: ' + error.message);
+            } finally {
+                hideLoading();
+            }
+        }
+
+        function showLoading(text) {
+            loadingText.textContent = text;
+            loadingOverlay.style.display = 'flex';
+        }
+
+        function hideLoading() {
+            loadingOverlay.style.display = 'none';
+        }
+    </script>
+</body>
+</html>
