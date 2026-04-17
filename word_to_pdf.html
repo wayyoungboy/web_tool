@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Word转PDF工具 - Web工具集</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            position: relative;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            font-weight: 300;
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .back-btn {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            text-decoration: none;
+            font-size: 0.9em;
+            transition: background 0.3s ease;
+        }
+
+        .back-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        .tool-section {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 30px;
+            border: 2px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .tool-section:hover {
+            border-color: #667eea;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .tool-title {
+            font-size: 1.4em;
+            color: #333;
+            margin-bottom: 15px;
+            font-weight: 500;
+        }
+
+        .tool-description {
+            color: #666;
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+
+        .upload-area {
+            border: 3px dashed #ddd;
+            border-radius: 10px;
+            padding: 30px;
+            text-align: center;
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .upload-area:hover {
+            border-color: #667eea;
+            background-color: #f8f9ff;
+        }
+
+        .upload-area.dragover {
+            border-color: #667eea;
+            background-color: #f0f4ff;
+        }
+
+        .upload-icon {
+            font-size: 2em;
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        .upload-text {
+            color: #666;
+            margin-bottom: 10px;
+        }
+
+        .upload-hint {
+            color: #999;
+            font-size: 0.9em;
+        }
+
+        #fileInput {
+            display: none;
+        }
+
+        .file-info-bar {
+            display: none;
+            background: #e8f5e9;
+            border-radius: 8px;
+            padding: 12px 20px;
+            margin-bottom: 20px;
+            color: #2e7d32;
+            font-weight: 500;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 15px;
+        }
+
+        .action-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .action-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .action-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .secondary-btn {
+            background: #6c757d;
+        }
+
+        .secondary-btn:hover {
+            background: #5a6268;
+        }
+
+        /* Preview area styled like a page */
+        .preview-container {
+            display: none;
+            background: white;
+            border-radius: 10px;
+            padding: 40px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            margin-top: 20px;
+            border: 1px solid #e0e0e0;
+        }
+
+        .preview-title {
+            font-size: 1.2em;
+            color: #333;
+            margin-bottom: 15px;
+            font-weight: 500;
+        }
+
+        #previewContent {
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+            font-size: 14px;
+            line-height: 1.8;
+            color: #333;
+        }
+
+        #previewContent h1 { font-size: 2em; margin: 0.67em 0; color: #222; }
+        #previewContent h2 { font-size: 1.5em; margin: 0.75em 0; color: #333; }
+        #previewContent h3 { font-size: 1.17em; margin: 0.83em 0; color: #444; }
+        #previewContent p { margin: 1em 0; }
+        #previewContent table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 1em 0;
+        }
+        #previewContent th, #previewContent td {
+            border: 1px solid #ddd;
+            padding: 8px 12px;
+            text-align: left;
+        }
+        #previewContent th {
+            background: #f5f5f5;
+            font-weight: 600;
+        }
+        #previewContent ul, #previewContent ol {
+            margin: 1em 0;
+            padding-left: 2em;
+        }
+        #previewContent img {
+            max-width: 100%;
+            height: auto;
+        }
+        #previewContent blockquote {
+            border-left: 4px solid #667eea;
+            padding-left: 16px;
+            color: #666;
+            margin: 1em 0;
+        }
+        #previewContent pre, #previewContent code {
+            background: #f5f5f5;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Consolas', 'Courier New', monospace;
+            font-size: 0.9em;
+        }
+        #previewContent pre {
+            padding: 16px;
+            overflow-x: auto;
+        }
+
+        /* Loading */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.85);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            flex-direction: column;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 15px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .progress-section {
+            display: none;
+            margin-top: 20px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background: #f0f0f0;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 10px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .progress-text {
+            text-align: center;
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .result-section {
+            display: none;
+            text-align: center;
+            padding: 30px;
+            background: #e8f5e9;
+            border-radius: 15px;
+            margin-top: 20px;
+        }
+
+        .result-icon {
+            font-size: 4em;
+            color: #4caf50;
+            margin-bottom: 15px;
+        }
+
+        .footer {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+            font-size: 0.9em;
+            border-top: 1px solid #eee;
+        }
+
+        @media (max-width: 768px) {
+            .content { padding: 20px; }
+            .header h1 { font-size: 1.8em; }
+            .preview-container { padding: 20px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <a href="index.html" class="back-btn">← 返回主页</a>
+            <h1>Word转PDF</h1>
+            <p>将Word文档转换为PDF，支持实时预览</p>
+        </div>
+
+        <div class="content">
+            <!-- File Upload -->
+            <div class="tool-section">
+                <h3 class="tool-title">上传Word文档</h3>
+                <p class="tool-description">支持 .docx 格式的Word文档，纯前端处理，文件不会上传到服务器</p>
+
+                <div class="upload-area" id="uploadArea">
+                    <div class="upload-icon">📄</div>
+                    <div class="upload-text">点击选择Word文件或拖拽文件到此处</div>
+                    <div class="upload-hint">支持 .docx 格式，文件大小限制 20MB</div>
+                    <input type="file" id="fileInput" accept=".docx">
+                </div>
+
+                <div class="file-info-bar" id="fileInfoBar"></div>
+            </div>
+
+            <!-- Preview -->
+            <div class="tool-section" id="previewSection" style="display: none;">
+                <h3 class="tool-title">文档预览</h3>
+                <p class="tool-description">以下是Word文档的内容预览，确认无误后可转换为PDF</p>
+
+                <div class="button-group">
+                    <button class="action-btn" id="convertBtn">转换为PDF</button>
+                    <button class="secondary-btn action-btn" id="resetBtn">重新上传</button>
+                </div>
+
+                <div class="preview-container" id="previewContainer">
+                    <div id="previewContent"></div>
+                </div>
+            </div>
+
+            <!-- Progress -->
+            <div class="tool-section progress-section" id="progressSection">
+                <h3 class="tool-title">转换进度</h3>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+                <div class="progress-text" id="progressText">准备转换...</div>
+            </div>
+
+            <!-- Result -->
+            <div class="tool-section result-section" id="resultSection">
+                <div class="result-icon">✓</div>
+                <h3 class="tool-title">转换完成</h3>
+                <p class="tool-description">PDF文件已生成，请下载</p>
+                <div class="button-group" style="justify-content: center;">
+                    <button class="action-btn" id="downloadBtn">下载PDF文件</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>© 2024 Web工具集 - 让工作更简单</p>
+            <p><a href="https://github.com/wayyoungboy/web_tool" target="_blank">GitHub</a></p>
+        </div>
+    </div>
+
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="spinner"></div>
+        <div id="loadingText">处理中...</div>
+    </div>
+
+    <script>
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        const fileInfoBar = document.getElementById('fileInfoBar');
+        const previewSection = document.getElementById('previewSection');
+        const previewContainer = document.getElementById('previewContainer');
+        const previewContent = document.getElementById('previewContent');
+        const convertBtn = document.getElementById('convertBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const progressSection = document.getElementById('progressSection');
+        const progressFill = document.getElementById('progressFill');
+        const progressText = document.getElementById('progressText');
+        const resultSection = document.getElementById('resultSection');
+        const downloadBtn = document.getElementById('downloadBtn');
+        const loadingOverlay = document.getElementById('loadingOverlay');
+        const loadingText = document.getElementById('loadingText');
+
+        let htmlContent = '';
+        let originalFileName = '';
+
+        // Upload area events
+        uploadArea.addEventListener('click', () => fileInput.click());
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+        uploadArea.addEventListener('dragleave', () => uploadArea.classList.remove('dragover'));
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            if (e.dataTransfer.files.length > 0) handleFile(e.dataTransfer.files[0]);
+        });
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) handleFile(e.target.files[0]);
+        });
+
+        // Convert button
+        convertBtn.addEventListener('click', () => convertToPdf());
+
+        // Reset button
+        resetBtn.addEventListener('click', () => {
+            fileInput.value = '';
+            htmlContent = '';
+            originalFileName = '';
+            previewSection.style.display = 'none';
+            previewContainer.style.display = 'none';
+            previewContent.innerHTML = '';
+            fileInfoBar.style.display = 'none';
+            progressSection.style.display = 'none';
+            resultSection.style.display = 'none';
+            uploadArea.style.display = 'block';
+        });
+
+        // Download button
+        downloadBtn.addEventListener('click', () => {
+            if (!htmlContent) return;
+            convertHtmlToPdf(htmlContent, true);
+        });
+
+        function handleFile(file) {
+            const ext = file.name.toLowerCase().split('.').pop();
+            if (ext !== 'docx') {
+                alert('请上传 .docx 格式的Word文件');
+                return;
+            }
+            if (file.size > 20 * 1024 * 1024) {
+                alert('文件大小超过20MB限制');
+                return;
+            }
+
+            showLoading('正在解析Word文档...');
+            originalFileName = file.name.replace(/\.docx$/i, '');
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const arrayBuffer = e.target.result;
+                mammoth.convertToHtml({ arrayBuffer: arrayBuffer })
+                    .then(displayResult)
+                    .catch(handleError)
+                    .finally(() => hideLoading());
+            };
+            reader.onerror = () => {
+                hideLoading();
+                alert('文件读取失败');
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        function displayResult(result) {
+            htmlContent = result.value;
+
+            if (result.messages.length > 0) {
+                console.warn('Conversion warnings:', result.messages);
+            }
+
+            if (!htmlContent.trim()) {
+                alert('未能从文档中提取到内容，该文件可能包含不受支持的元素');
+                return;
+            }
+
+            previewContent.innerHTML = htmlContent;
+
+            fileInfoBar.textContent = `已加载: ${originalFileName}.docx`;
+            fileInfoBar.style.display = 'block';
+            previewContainer.style.display = 'block';
+            previewSection.style.display = 'block';
+            uploadArea.style.display = 'none';
+        }
+
+        function handleError(error) {
+            console.error(error);
+            alert('转换失败: ' + error.message);
+        }
+
+        function showLoading(text) {
+            loadingText.textContent = text;
+            loadingOverlay.style.display = 'flex';
+        }
+
+        function hideLoading() {
+            loadingOverlay.style.display = 'none';
+        }
+
+        async function convertToPdf() {
+            if (!htmlContent) {
+                alert('请先上传Word文档');
+                return;
+            }
+
+            progressSection.style.display = 'block';
+            resultSection.style.display = 'none';
+            updateProgress(10, '准备转换...');
+
+            // Use setTimeout to allow UI to update
+            await new Promise(r => setTimeout(r, 100));
+
+            try {
+                updateProgress(30, '渲染文档...');
+                await new Promise(r => setTimeout(r, 100));
+
+                updateProgress(60, '生成PDF...');
+                await convertHtmlToPdf(htmlContent, false);
+
+                updateProgress(100, '转换完成！');
+                await new Promise(r => setTimeout(r, 500));
+
+                progressSection.style.display = 'none';
+                resultSection.style.display = 'block';
+            } catch (error) {
+                console.error(error);
+                alert('PDF生成失败: ' + error.message);
+                progressSection.style.display = 'none';
+            }
+        }
+
+        function updateProgress(percent, text) {
+            progressFill.style.width = percent + '%';
+            progressText.textContent = text;
+        }
+
+        async function convertHtmlToPdf(content, triggerDownload) {
+            const { jsPDF } = window.jspdf;
+
+            // Use the VISIBLE preview element
+            const el = document.getElementById('previewContent');
+
+            await new Promise(r => setTimeout(r, 200));
+
+            const canvas = await html2canvas(el, {
+                scale: 2,
+                useCORS: true,
+                logging: false,
+                backgroundColor: '#ffffff',
+            });
+
+            const imgData = canvas.toDataURL('image/jpeg', 0.95);
+            const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+
+            const pdfWidth = 210;
+            const pdfHeight = 297;
+            const margin = 10;
+            const usableWidth = pdfWidth - margin * 2;
+
+            const imgW = canvas.width;
+            const imgH = canvas.height;
+            const imgRatio = imgW / imgH;
+            const renderedHeightMm = usableWidth / imgRatio;
+            const usableHeight = pdfHeight - margin * 2;
+
+            let yOffsetMm = 0;
+            let page = 0;
+
+            while (yOffsetMm < renderedHeightMm) {
+                if (page > 0) pdf.addPage();
+
+                const remaining = renderedHeightMm - yOffsetMm;
+                const pageContent = Math.min(usableHeight, remaining);
+
+                const startF = yOffsetMm / renderedHeightMm;
+                const pageF = pageContent / renderedHeightMm;
+
+                const srcY = startF * imgH;
+                const srcH = pageF * imgH;
+
+                const sc = document.createElement('canvas');
+                sc.width = imgW;
+                sc.height = Math.ceil(srcH);
+                sc.getContext('2d').drawImage(canvas, 0, srcY, imgW, srcH, 0, 0, imgW, sc.height);
+
+                const sImg = sc.toDataURL('image/jpeg', 0.95);
+                const sRatio = sc.width / sc.height;
+
+                pdf.addImage(sImg, 'JPEG', margin, margin, usableWidth, usableWidth / sRatio);
+
+                yOffsetMm += pageContent;
+                page++;
+            }
+
+            pdf.save(`${originalFileName}.pdf`);
+        }
+    </script>
+</body>
+</html>
